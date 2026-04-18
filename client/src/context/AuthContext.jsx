@@ -3,8 +3,31 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-// Set up axios base
+// Set up axios base — proxy in vite.config.js routes /api → http://localhost:5000
 const api = axios.create({ baseURL: '/api' });
+
+/**
+ * Parses axios errors into human-readable messages.
+ * Handles: proper API errors, 502/503 proxy failures (server down),
+ * and ERR_NETWORK / timeout errors.
+ */
+function _parseError(err, fallback) {
+  // 1. Backend returned a JSON error message
+  if (err?.response?.data?.message) return err.response.data.message;
+
+  // 2. Vite proxy couldn't reach the backend (502 Bad Gateway)
+  const status = err?.response?.status;
+  if (status === 502 || status === 503 || status === 504) {
+    return '⚠️ Server is offline. Please start the backend on port 5000 and try again.';
+  }
+
+  // 3. No response at all — pure network error / server not running
+  if (err.code === 'ERR_NETWORK' || err.code === 'ECONNREFUSED' || !err.response) {
+    return '⚠️ Cannot reach server. Make sure the backend is running on port 5000.';
+  }
+
+  return fallback;
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -38,42 +61,27 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      // data = { _id, name, email, role, avatar, healthScore, token }
       localStorage.setItem('cc_token', data.token);
       localStorage.setItem('cc_user', JSON.stringify(data));
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       setUser(data);
       return data;
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        (err.code === 'ERR_NETWORK'
-          ? '⚠️ Cannot reach server. Make sure the backend is running on port 5000.'
-          : 'Login failed. Please try again.');
+      const msg = _parseError(err, 'Login failed. Please try again.');
       throw new Error(msg);
     }
   };
 
-  /**
-   * REGISTER — calls POST /api/auth/register
-   * The backend hashes the password and saves to MongoDB automatically.
-   * Returns the new user object + JWT on success.
-   */
   const register = async (userData) => {
     try {
       const { data } = await api.post('/auth/register', userData);
-      // data = { _id, name, email, role, avatar, healthScore, token }
       localStorage.setItem('cc_token', data.token);
       localStorage.setItem('cc_user', JSON.stringify(data));
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       setUser(data);
       return data;
     } catch (err) {
-      const msg =
-        err?.response?.data?.message ||
-        (err.code === 'ERR_NETWORK'
-          ? '⚠️ Cannot reach server. Make sure the backend is running on port 5000.'
-          : 'Registration failed. Please try again.');
+      const msg = _parseError(err, 'Registration failed. Please try again.');
       throw new Error(msg);
     }
   };

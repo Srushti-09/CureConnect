@@ -5,6 +5,73 @@ import ParticleField from '../components/ParticleField';
 import ECGLine from '../components/ECGLine';
 import { Heart, Shield, Zap, ArrowRight, Activity, Lock, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
 
+// ── Typewriter logo in cursive Dancing Script font ─────────────────────────
+const FULL_NAME = 'CureConnect';
+
+function TypewriterLogo({ size = 52, delay = 0, showCursor = true, inline = false }) {
+  const [displayed, setDisplayed] = useState('');
+  const [cursorOn, setCursorOn] = useState(true);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    let i = 0;
+    const startTimer = setTimeout(() => {
+      const interval = setInterval(() => {
+        i++;
+        setDisplayed(FULL_NAME.slice(0, i));
+        if (i >= FULL_NAME.length) {
+          clearInterval(interval);
+          setDone(true);
+        }
+      }, 90); // ~90ms per character → ~1s total for 11 chars
+      return () => clearInterval(interval);
+    }, delay);
+    return () => clearTimeout(startTimer);
+  }, [delay]);
+
+  // Blink cursor after typing is done
+  useEffect(() => {
+    if (!showCursor) return;
+    const blink = setInterval(() => setCursorOn(v => !v), 530);
+    return () => clearInterval(blink);
+  }, [showCursor]);
+
+  const gradientStyle = {
+    background: 'linear-gradient(135deg, #00d4ff 0%, #00ff88 60%, #a78bfa 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  };
+
+  return (
+    <span style={{
+      fontFamily: '"Dancing Script", cursive',
+      fontSize: size,
+      fontWeight: 700,
+      letterSpacing: '1px',
+      display: inline ? 'inline' : 'block',
+      lineHeight: 1.1,
+      ...gradientStyle,
+    }}>
+      {displayed}
+      {showCursor && (
+        <span style={{
+          display: 'inline-block',
+          marginLeft: 2,
+          width: 3,
+          height: size * 0.8,
+          background: '#00d4ff',
+          opacity: cursorOn ? 1 : 0,
+          verticalAlign: 'middle',
+          borderRadius: 2,
+          transition: 'opacity 0.1s',
+          boxShadow: '0 0 8px rgba(0,212,255,0.8)',
+        }} />
+      )}
+    </span>
+  );
+}
+
 // ── Hero rotating visuals ──────────────────────────────────────────────────
 const heroSlides = [
   {
@@ -437,25 +504,14 @@ export default function LandingPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        flexShrink: 0,
                       }}
                     >
                       <Heart size={28} color="#000" fill="#000" />
                     </motion.div>
-                    <motion.h1
-                      initial={{ opacity: 0, x: -30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.2, duration: 0.6 }}
-                      style={{
-                        fontSize: 52,
-                        fontWeight: 900,
-                        background: 'linear-gradient(135deg, #00d4ff, #00ff88)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        letterSpacing: '-2px',
-                      }}
-                    >
-                      CureConnect
-                    </motion.h1>
+
+                    {/* ✨ Cursive typewriter logo ✨ */}
+                    <TypewriterLogo size={58} delay={200} showCursor={true} />
                   </div>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -527,10 +583,15 @@ export default function LandingPage() {
               }}>
                 <Heart size={18} color="#000" fill="#000" />
               </div>
+              {/* Cursive name in navbar (no typewriter, just styled) */}
               <span style={{
-                fontSize: 20, fontWeight: 800,
+                fontFamily: '"Dancing Script", cursive',
+                fontSize: 24,
+                fontWeight: 700,
                 background: 'linear-gradient(135deg, #00d4ff, #00ff88)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                lineHeight: 1,
               }}>CureConnect</span>
             </div>
             <div style={{ display: 'flex', gap: 32 }}>
