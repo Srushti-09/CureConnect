@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ECGLine from './ECGLine';
-
+// Aisha UI improvement
 export default function Navbar({ role }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export default function Navbar({ role }) {
       style={{
         position: 'fixed',
         top: 0, left: 260, right: 0,
-        height: 68,
+        height: window.innerWidth < 768 ? 56 : 68,
         background: 'rgba(6, 13, 28, 0.9)',
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
