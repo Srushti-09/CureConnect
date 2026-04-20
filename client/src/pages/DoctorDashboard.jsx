@@ -196,6 +196,9 @@ export default function DoctorDashboard() {
   const [myPatients, setMyPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Access code entry
   const [codeInput, setCodeInput] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -289,12 +292,12 @@ export default function DoctorDashboard() {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#030712' }}>
+    <div className="dashboard-layout">
       <div className="bg-grid" />
-      <Sidebar role="doctor" />
-      <Navbar role="doctor" />
+      <Sidebar role="doctor" mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Navbar role="doctor" onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      <main style={{ flex: 1, marginLeft: 260, marginTop: 68, padding: '32px 32px 80px', position: 'relative', zIndex: 1 }}>
+      <main className="dashboard-main">
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
@@ -310,7 +313,7 @@ export default function DoctorDashboard() {
         </motion.div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+        <div className="dashboard-grid-4">
           {stats.map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card" style={{ padding: '20px 22px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -326,7 +329,7 @@ export default function DoctorDashboard() {
         </div>
 
         {/* ── Row 1: Add Patient + My Patients ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 20 }}>
+        <div className="dashboard-grid-2">
 
           {/* Add Patient via Code */}
           <WidgetCard title="Add Patient via Code" icon={Key} color="#00d4ff">
@@ -447,7 +450,7 @@ export default function DoctorDashboard() {
         </div>
 
         {/* ── Row 2: Schedule + Analytics ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 20 }}>
+        <div className="dashboard-grid-2">
           <WidgetCard title="Today's Schedule" icon={Calendar} color="#00d4ff">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {appointmentsToday.map((appt, i) => (
@@ -495,7 +498,7 @@ export default function DoctorDashboard() {
         {/* ── Prescription Modal ── */}
         {showPrescPad && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(10px)', zIndex: 500 }} onClick={e => { if (e.target === e.currentTarget) setShowPrescPad(false); }}>
-            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', padding: 28, border: '1px solid rgba(139,92,246,0.3)', boxShadow: '0 0 80px rgba(139,92,246,0.2)' }}>
+            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', padding: 28, border: '1px solid rgba(139,92,246,0.3)', boxShadow: '0 16px 40px rgba(139,92,246,0.12)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
                 <h3 style={{ fontSize: 20, fontWeight: 800 }}>Digital Prescription Pad</h3>
                 <button onClick={() => setShowPrescPad(false)} style={{ background: 'none', border: 'none', color: 'rgba(240,244,255,0.4)', cursor: 'pointer', fontSize: 20 }}>✕</button>
@@ -513,7 +516,7 @@ export default function DoctorDashboard() {
         {/* ── Patient Documents Modal ── */}
         {viewingPatient && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(10px)', zIndex: 500 }} onClick={e => { if (e.target === e.currentTarget) setViewingPatient(null); }}>
-            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ width: '100%', maxWidth: 560, maxHeight: '88vh', overflowY: 'auto', padding: 28, border: '1px solid rgba(0,212,255,0.2)', boxShadow: '0 0 80px rgba(0,212,255,0.1)' }}>
+            <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ width: '100%', maxWidth: 560, maxHeight: '88vh', overflowY: 'auto', padding: 28, border: '1px solid rgba(0,212,255,0.2)', boxShadow: '0 16px 40px rgba(0,212,255,0.08)' }}>
               <PatientDocuments patient={viewingPatient} onClose={() => setViewingPatient(null)} />
             </motion.div>
           </motion.div>
