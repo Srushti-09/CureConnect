@@ -7,10 +7,12 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
-
+app.get('/', (req, res) => {
+  res.send('CureConnect Backend is Running 🚀');
+});
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://cureconnect.vercel.app', /\.vercel\.app$/],
+  origin: true,
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
@@ -30,23 +32,20 @@ app.get('/api/health', (req, res) => {
 });
 
 // MongoDB connection
+const PORT = process.env.PORT || 5000;
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected — CureConnect DB online');
-    // Only call app.listen() if we are NOT on Vercel (serverless doesn't need ports)
-    if (!process.env.VERCEL) {
-      app.listen(process.env.PORT || 5000, () => {
-        console.log(`🚀 CureConnect API running on port ${process.env.PORT || 5000}`);
-      });
-    }
+    app.listen(PORT, () => {
+      console.log(`🚀 CureConnect API running on port ${PORT}`);
+    });
   })
   .catch(err => {
     console.error('❌ MongoDB connection failed:', err.message);
-    if (!process.env.VERCEL) {
-      app.listen(process.env.PORT || 5000, () => {
-        console.log(`⚠️  CureConnect API running on port ${process.env.PORT || 5000} (no DB)`);
-      });
-    }
+    app.listen(PORT, () => {
+      console.log(`⚠️ CureConnect API running on port ${PORT} (no DB)`);
+    });
   });
 
 module.exports = app;

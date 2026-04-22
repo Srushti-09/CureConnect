@@ -199,8 +199,8 @@ export default function AuthPage() {
                   </p>
                   <p style={{ color: 'rgba(240,244,255,0.5)', fontSize: 12, fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.8 }}>
                     Open a <span style={{ color: '#fbbf24' }}>new terminal</span> and run:<br />
-                    <span style={{ color: '#00ff88' }}>cd c:\Users\SRUSHTI\OneDrive\Desktop\CureConnect\server</span><br />
-                    <span style={{ color: '#00ff88' }}>node index.js</span>
+                    <span style={{ color: '#00ff88' }}>Backend is being reached at:</span><br />
+<span style={{ color: '#00ff88' }}>https://aisham30-cureconnect.onrender.com</span>
                   </p>
                 </div>
               </motion.div>
@@ -520,7 +520,7 @@ export default function AuthPage() {
             borderRadius: 10,
           }}>
             <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.35)', fontFamily: 'JetBrains Mono, monospace' }}>
-              🗄️ Accounts saved to MongoDB — server must be running on port 5000
+              🗄️ Accounts saved to MongoDB Atlas · Backend hosted on Render
             </p>
           </div>
 

@@ -3,74 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import ParticleField from '../components/ParticleField';
 import ECGLine from '../components/ECGLine';
-import { Heart, Shield, Zap, ArrowRight, Activity, Lock, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
-
-// ── Typewriter logo in cursive Dancing Script font ─────────────────────────
-const FULL_NAME = 'CureConnect';
-
-function TypewriterLogo({ size = 52, delay = 0, showCursor = true, inline = false }) {
-  const [displayed, setDisplayed] = useState('');
-  const [cursorOn, setCursorOn] = useState(true);
-  const [done, setDone] = useState(false);
-
-  useEffect(() => {
-    let i = 0;
-    const startTimer = setTimeout(() => {
-      const interval = setInterval(() => {
-        i++;
-        setDisplayed(FULL_NAME.slice(0, i));
-        if (i >= FULL_NAME.length) {
-          clearInterval(interval);
-          setDone(true);
-        }
-      }, 90); // ~90ms per character → ~1s total for 11 chars
-      return () => clearInterval(interval);
-    }, delay);
-    return () => clearTimeout(startTimer);
-  }, [delay]);
-
-  // Blink cursor after typing is done
-  useEffect(() => {
-    if (!showCursor) return;
-    const blink = setInterval(() => setCursorOn(v => !v), 530);
-    return () => clearInterval(blink);
-  }, [showCursor]);
-
-  const gradientStyle = {
-    background: 'linear-gradient(135deg, #00d4ff 0%, #00ff88 60%, #a78bfa 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  };
-
-  return (
-    <span style={{
-      fontFamily: '"Dancing Script", cursive',
-      fontSize: size,
-      fontWeight: 700,
-      letterSpacing: '1px',
-      display: inline ? 'inline' : 'block',
-      lineHeight: 1.1,
-      ...gradientStyle,
-    }}>
-      {displayed}
-      {showCursor && (
-        <span style={{
-          display: 'inline-block',
-          marginLeft: 2,
-          width: 3,
-          height: size * 0.8,
-          background: '#00d4ff',
-          opacity: cursorOn ? 1 : 0,
-          verticalAlign: 'middle',
-          borderRadius: 2,
-          transition: 'opacity 0.1s',
-          boxShadow: '0 0 8px rgba(0,212,255,0.8)',
-        }} />
-      )}
-    </span>
-  );
-}
+import { Heart, Shield, Zap, ArrowRight, Activity, Lock, Globe, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
 
 // ── Hero rotating visuals ──────────────────────────────────────────────────
 const heroSlides = [
@@ -340,7 +273,7 @@ const SEQUENCE_DURATION = 5500; // ms for intro to complete
 export default function LandingPage() {
   const navigate = useNavigate();
   const [phase, setPhase] = useState(0); // 0=boot, 1=ecg, 2=logo, 3=content
-  const [skipIntro, setSkipIntro] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Check if user already saw intro
@@ -362,6 +295,12 @@ export default function LandingPage() {
   const handleSkip = () => {
     setPhase(3);
     sessionStorage.setItem('cc_intro_done', '1');
+  };
+
+  const scrollToSection = (sectionId) => {
+    setMobileMenuOpen(false);
+    const el = document.getElementById(sectionId);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
   const stats = [
@@ -397,6 +336,8 @@ export default function LandingPage() {
       color: '#ec4899',
     },
   ];
+
+  const navLinks = ['Features', 'Security', 'Doctors', 'Pricing'];
 
   return (
     <div style={{ minHeight: '100vh', background: '#030712', position: 'relative', overflow: 'hidden' }}>
@@ -509,9 +450,22 @@ export default function LandingPage() {
                     >
                       <Heart size={28} color="#000" fill="#000" />
                     </motion.div>
-
-                    {/* ✨ Cursive typewriter logo ✨ */}
-                    <TypewriterLogo size={58} delay={200} showCursor={true} />
+                    <motion.h1
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2, duration: 0.6 }}
+                      className="landing-intro-title"
+                      style={{
+                        fontSize: 52,
+                        fontWeight: 900,
+                        background: 'linear-gradient(135deg, #00d4ff, #00ff88)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        letterSpacing: '-2px',
+                      }}
+                    >
+                      CureConnect
+                    </motion.h1>
                   </div>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -560,26 +514,16 @@ export default function LandingPage() {
         >
           <ParticleField count={55} />
 
-          {/* Nav bar */}
-          <nav style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 48px',
-            height: 70,
-            background: 'rgba(3,7,18,0.8)',
-            backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-            zIndex: 50,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* ── Responsive Nav bar ── */}
+          <nav className="landing-navbar">
+            {/* Logo */}
+            <div className="landing-navbar-logo">
               <div style={{
                 width: 36, height: 36,
                 background: 'linear-gradient(135deg, #00d4ff, #00ff88)',
                 borderRadius: 10,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
                 <Heart size={18} color="#000" fill="#000" />
               </div>
@@ -594,21 +538,31 @@ export default function LandingPage() {
                 lineHeight: 1,
               }}>CureConnect</span>
             </div>
-            <div style={{ display: 'flex', gap: 32 }}>
-              {['Features', 'Security', 'Doctors', 'Pricing'].map(item => (
-                <a key={item} href={`#${item.toLowerCase()}`} style={{
-                  color: 'rgba(240,244,255,0.6)',
-                  textDecoration: 'none',
-                  fontSize: 15,
-                  fontFamily: 'Outfit, sans-serif',
-                  transition: 'color 0.2s',
-                }}
-                onMouseEnter={e => e.target.style.color = '#00d4ff'}
-                onMouseLeave={e => e.target.style.color = 'rgba(240,244,255,0.6)'}
-                >{item}</a>
+
+            {/* Desktop nav links */}
+            <div className="landing-nav-links">
+              {navLinks.map(item => (
+                <button
+                  key={item}
+                  onClick={() => scrollToSection(item.toLowerCase())}
+                  style={{
+                    color: 'rgba(240,244,255,0.6)',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: 15,
+                    fontFamily: 'Outfit, sans-serif',
+                    cursor: 'pointer',
+                    transition: 'color 0.2s',
+                    padding: 0,
+                  }}
+                  onMouseEnter={e => e.target.style.color = '#00d4ff'}
+                  onMouseLeave={e => e.target.style.color = 'rgba(240,244,255,0.6)'}
+                >{item}</button>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 12 }}>
+
+            {/* Desktop action buttons */}
+            <div className="landing-nav-actions">
               <button className="btn-ghost" onClick={() => navigate('/auth')} style={{ padding: '9px 20px', fontSize: 14 }}>
                 Sign In
               </button>
@@ -616,19 +570,49 @@ export default function LandingPage() {
                 <span>Get Started</span>
               </button>
             </div>
+
+            {/* Mobile hamburger */}
+            <button
+              className="hamburger-btn landing-hamburger"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </nav>
 
-          {/* Hero Section — 2-column */}
-          <section style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '120px 64px 80px',
-            position: 'relative',
-            gap: 80,
-          }}>
+          {/* ── Mobile menu overlay ── */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.25 }}
+                className="landing-mobile-menu"
+              >
+                {navLinks.map(item => (
+                  <button
+                    key={item}
+                    onClick={() => scrollToSection(item.toLowerCase())}
+                    className="landing-mobile-menu-link"
+                  >{item}</button>
+                ))}
+                <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '8px 0' }} />
+                <button className="btn-ghost" onClick={() => { setMobileMenuOpen(false); navigate('/auth'); }} style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
+                  Sign In
+                </button>
+                <button className="btn-primary" onClick={() => { setMobileMenuOpen(false); navigate('/select'); }} style={{ width: '100%', justifyContent: 'center', padding: '12px' }}>
+                  <span>Get Started</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* ── Hero Section — uses CSS classes for responsive ── */}
+          <section className="hero-section">
             {/* Left column — text */}
-            <div style={{ flex: 1, maxWidth: 580 }}>
+            <div className="hero-text">
               {/* Badge */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -726,43 +710,45 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: 60 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              className="hero-carousel-wrap"
             >
               <HeroCarousel />
             </motion.div>
           </section>
 
-          {/* Stats */}
-          <section style={{ padding: '80px 48px', position: 'relative' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
-              {stats.map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="glass-card"
-                  style={{ padding: '28px 24px', textAlign: 'center' }}
-                >
-                  <stat.icon size={24} style={{ color: '#00d4ff', marginBottom: 12 }} />
-                  <p style={{ fontSize: 36, fontWeight: 800, color: '#fff', letterSpacing: '-1px' }}>{stat.value}</p>
-                  <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.5)', marginTop: 6 }}>{stat.label}</p>
-                </motion.div>
-              ))}
+          {/* ── Stats — uses CSS class for responsive grid ── */}
+          <section className="landing-section">
+            <div className="content-container">
+              <div className="landing-stats-grid">
+                {stats.map((stat, i) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 40 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="glass-card"
+                    style={{ padding: '28px 24px', textAlign: 'center' }}
+                  >
+                    <stat.icon size={24} style={{ color: '#00d4ff', marginBottom: 12 }} />
+                    <p style={{ fontSize: 36, fontWeight: 800, color: '#fff', letterSpacing: '-1px' }}>{stat.value}</p>
+                    <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.5)', marginTop: 6 }}>{stat.label}</p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           </section>
 
-          {/* Features */}
-          <section id="features" style={{ padding: '80px 48px', position: 'relative' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          {/* ── Features — uses CSS class for responsive grid ── */}
+          <section id="features" className="landing-section">
+            <div className="content-container">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 style={{ textAlign: 'center', marginBottom: 64 }}
               >
-                <h2 style={{ fontSize: 48, fontWeight: 800, letterSpacing: '-2px', marginBottom: 16 }}>
+                <h2 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 800, letterSpacing: '-2px', marginBottom: 16 }}>
                   Built for the <span style={{ background: 'linear-gradient(135deg,#00d4ff,#8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>future</span>
                 </h2>
                 <p style={{ color: 'rgba(240,244,255,0.55)', fontSize: 18, maxWidth: 500, margin: '0 auto' }}>
@@ -770,7 +756,7 @@ export default function LandingPage() {
                 </p>
               </motion.div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
+              <div className="landing-grid-2">
                 {features.map((feat, i) => (
                   <motion.div
                     key={feat.title}
@@ -804,30 +790,29 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* CTA Section */}
-          <section style={{ padding: '100px 48px', position: 'relative' }}>
-            <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+          {/* ── CTA Section ── */}
+          <section id="security" className="landing-section landing-section-cta">
+            <div className="content-container" style={{ maxWidth: 800 }}>
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                className="glass-card"
+                className="glass-card landing-cta-card"
                 style={{
-                  padding: '64px',
                   background: 'rgba(0,212,255,0.04)',
                   border: '1px solid rgba(0,212,255,0.15)',
                   boxShadow: '0 0 80px rgba(0,212,255,0.08)',
                 }}
               >
                 <Zap size={48} style={{ color: '#00d4ff', marginBottom: 24 }} />
-                <h2 style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 16 }}>
+                <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 16 }}>
                   Ready to transform<br />
                   <span className="gradient-text-cyan">your health journey?</span>
                 </h2>
                 <p style={{ color: 'rgba(240,244,255,0.55)', fontSize: 17, marginBottom: 40, lineHeight: 1.7 }}>
                   Join millions of patients and doctors who trust CureConnect for their most important health decisions.
                 </p>
-                <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                <div className="landing-cta-buttons">
                   <button className="btn-primary" onClick={() => navigate('/select')} style={{ padding: '15px 40px', fontSize: 16 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>I'm a Patient <ArrowRight size={18} /></span>
                   </button>
@@ -839,14 +824,8 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Footer */}
-          <footer style={{
-            padding: '40px 48px',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
+          {/* ── Footer ── */}
+          <footer className="landing-footer">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Heart size={16} color="#00d4ff" />
               <span style={{ fontSize: 14, color: 'rgba(240,244,255,0.4)' }}>© 2024 CureConnect. Built with care.</span>

@@ -6,11 +6,11 @@ import Navbar from '../components/Navbar';
 import ECGLine from '../components/ECGLine';
 import {
   Activity, FileText, Calendar, Pill,
-  TrendingUp, Heart, Plus, Upload,
+  TrendingUp, Heart, Plus, Upload, Search,
   Clock, CheckCircle, Brain,
   Thermometer, Droplets, Key, Copy, RefreshCw,
   Stethoscope, AlertTriangle, X, Eye,
-  ChevronDown, CheckCircle2, Trash2, Video, MapPin, Phone
+  ChevronDown, CheckCircle2, Trash2, Video, MapPin, Phone, ArrowUpDown
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
@@ -180,14 +180,31 @@ const HealthMeter = ({ score }) => {
   );
 };
 
+// ── Document categories for filter ─────────────────────────────────────────
+const DOC_CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'prescription', label: 'Prescriptions' },
+  { id: 'report', label: 'Lab Reports' },
+  { id: 'image', label: 'X-rays / Images' },
+  { id: 'other', label: 'Other' },
+];
+
 // ──────────────────────────────────────────────────────────────────────────────
 export default function PatientDashboard() {
   const { user } = useAuth();
+
+  // Mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Document upload state (stored in localStorage)
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Search, filter, sort state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [sortOrder, setSortOrder] = useState('newest');
 
   // Access code state
   const [accessCode, setAccessCode] = useState('');
@@ -286,6 +303,16 @@ export default function PatientDashboard() {
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
+  // Categorize file based on name and type
+  const categorizeFile = (file) => {
+    const name = file.name.toLowerCase();
+    if (name.includes('prescription') || name.includes('rx')) return 'prescription';
+    if (name.includes('report') || name.includes('lab') || name.includes('test') || name.includes('result')) return 'report';
+    if (file.type.includes('image') || name.includes('xray') || name.includes('x-ray') || name.includes('scan') || name.includes('mri')) return 'image';
+    if (file.type.includes('pdf')) return 'report';
+    return 'other';
+  };
+
   // File upload handler
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -305,14 +332,12 @@ export default function PatientDashboard() {
           size: (file.size / 1024).toFixed(1) + ' KB',
           date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
           data: ev.target.result,
-          category: file.type.includes('pdf') ? 'PDF' : file.type.includes('image') ? 'Image' : 'Document',
+          category: categorizeFile(file),
         });
         processed++;
         if (processed === files.length) {
           const updated = [...documents, ...newDocs];
           setDocuments(updated);
-          // Store without base64 data in main list (just metadata), store full in separate key
-          const meta = updated.map(d => ({ ...d, data: undefined }));
           localStorage.setItem(`cc_docs_${userId}`, JSON.stringify(updated));
           setUploading(false);
         }
@@ -354,13 +379,45 @@ export default function PatientDashboard() {
   // Specialty suggestions based on stored documents
   const specialtySuggestions = getSuggestedSpecialties(documents, user?.chronicConditions?.join(' ') || 'diabetes hypertension');
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#030712' }}>
-      <div className="bg-grid" />
-      <Sidebar role="patient" />
-      <Navbar role="patient" />
+  // ── Filtered & sorted documents ──
+  const filteredDocs = documents
+    .filter(doc => {
+      const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = activeCategory === 'all' || doc.category === activeCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
 
-      <main style={{ flex: 1, marginLeft: 260, marginTop: 68, padding: '32px 32px 80px', position: 'relative', zIndex: 1 }}>
+  // Category icon helper
+  const getCategoryIcon = (cat) => {
+    switch(cat) {
+      case 'prescription': return '💊';
+      case 'report': return '📋';
+      case 'image': return '🖼️';
+      default: return '📄';
+    }
+  };
+
+  const getCategoryLabel = (cat) => {
+    switch(cat) {
+      case 'prescription': return 'Prescription';
+      case 'report': return 'Lab Report';
+      case 'image': return 'Image/Scan';
+      default: return 'Document';
+    }
+  };
+
+  return (
+    <div className="dashboard-layout">
+      <div className="bg-grid" />
+      <Sidebar role="patient" mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Navbar role="patient" onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
+      <main className="dashboard-main">
 
         {/* Welcome row */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
@@ -377,9 +434,9 @@ export default function PatientDashboard() {
             </div>
             <motion.button
               onClick={triggerSOS}
-              animate={sosCountdown ? { scale: [1,1.08,1], boxShadow: ['0 0 30px rgba(255,68,68,0.4)','0 0 60px rgba(255,68,68,0.8)','0 0 30px rgba(255,68,68,0.4)'] } : {}}
+              animate={sosCountdown ? { scale: [1,1.04,1] } : {}}
               transition={{ duration: 0.8, repeat: Infinity }}
-              style={{ padding: '13px 24px', background: 'linear-gradient(135deg,#ff4444,#ff6b6b)', border: 'none', borderRadius: 50, color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 30px rgba(255,68,68,0.4)', fontFamily: 'Outfit, sans-serif' }}
+              style={{ padding: '13px 24px', background: 'linear-gradient(135deg,#ff4444,#ff6b6b)', border: 'none', borderRadius: 50, color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(255,68,68,0.3)', fontFamily: 'Outfit, sans-serif', minHeight: 44 }}
             >
               <AlertTriangle size={18} />
               {sosCountdown ? `SOS in ${sosCountdown}s` : 'EMERGENCY SOS'}
@@ -389,7 +446,8 @@ export default function PatientDashboard() {
         </motion.div>
 
         {/* ── Row 1: Score + Vitals ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 20, marginBottom: 20 }}>
+        <div id="health" style={{position:"absolute",marginTop:-80}} />
+        <div className="dashboard-grid-2">
           <WidgetCard title="Health Score" icon={Activity} color="#00ff88">
             <HealthMeter score={user?.healthScore || 78} />
             <div style={{ textAlign: 'center', marginTop: 14 }}>
@@ -415,7 +473,8 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 2: Documents + Access Code ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginBottom: 20 }}>
+        <div id="locker" style={{position:"absolute",marginTop:-80}} />
+        <div className="dashboard-grid-2-reverse">
 
           {/* Health Locker — Upload */}
           <WidgetCard title="Health Locker — My Documents" icon={FileText} color="#00d4ff"
@@ -432,29 +491,97 @@ export default function PatientDashboard() {
             {documents.length === 0 ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', border: '1px dashed rgba(0,212,255,0.2)', borderRadius: 14, cursor: 'pointer', gap: 10 }}
+                className="empty-state"
+                style={{ border: '1px dashed rgba(0,212,255,0.2)', borderRadius: 14, cursor: 'pointer', gap: 10 }}
               >
-                <Upload size={28} color="rgba(0,212,255,0.4)" />
-                <p style={{ color: 'rgba(240,244,255,0.4)', fontSize: 14 }}>Upload prescriptions, lab reports, X-rays...</p>
-                <p style={{ color: 'rgba(240,244,255,0.25)', fontSize: 12 }}>PDF, JPG, PNG, DOC supported</p>
+                <Upload size={28} className="empty-state-icon" />
+                <p className="empty-state-title">Upload prescriptions, lab reports, X-rays...</p>
+                <p className="empty-state-desc">PDF, JPG, PNG, DOC supported</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 240, overflowY: 'auto' }}>
-                {documents.map(doc => (
-                  <motion.div key={doc.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: 10 }}>
-                    <div style={{ width: 36, height: 36, background: 'rgba(0,212,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>
-                      {doc.category === 'PDF' ? '📄' : doc.category === 'Image' ? '🖼️' : '📋'}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</p>
-                      <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.4)', marginTop: 2 }}>{doc.date} · {doc.size}</p>
-                    </div>
-                    <button onClick={() => openDocument(doc)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,212,255,0.6)', padding: 4 }} title="View"><Eye size={15} /></button>
-                    <button onClick={() => deleteDocument(doc.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,68,68,0.5)', padding: 4 }} title="Delete"><Trash2 size={15} /></button>
-                  </motion.div>
-                ))}
-              </div>
+              <>
+                {/* Search + Sort bar */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(240,244,255,0.35)' }} />
+                    <input
+                      className="input-glass"
+                      placeholder="Search records..."
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      style={{ paddingLeft: 36, height: 38, fontSize: 13 }}
+                    />
+                  </div>
+                  <select
+                    className="sort-select"
+                    value={sortOrder}
+                    onChange={e => setSortOrder(e.target.value)}
+                    style={{ background: 'rgba(10,22,40,0.9)' }}
+                  >
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                  </select>
+                </div>
+
+                {/* Category filter tabs */}
+                <div className="filter-tabs">
+                  {DOC_CATEGORIES.map(cat => (
+                    <button
+                      key={cat.id}
+                      className={`filter-tab ${activeCategory === cat.id ? 'active' : ''}`}
+                      onClick={() => setActiveCategory(cat.id)}
+                    >
+                      {cat.label}
+                      {cat.id !== 'all' && (
+                        <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.6 }}>
+                          ({documents.filter(d => d.category === cat.id).length})
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Filtered document list */}
+                {filteredDocs.length === 0 ? (
+                  <div className="empty-state" style={{ padding: '30px 16px' }}>
+                    <Search size={28} className="empty-state-icon" />
+                    <p className="empty-state-title">No records found</p>
+                    <p className="empty-state-desc">
+                      {searchTerm ? `No results for "${searchTerm}"` : 'No documents in this category'}
+                    </p>
+                    {(searchTerm || activeCategory !== 'all') && (
+                      <button
+                        onClick={() => { setSearchTerm(''); setActiveCategory('all'); }}
+                        style={{ marginTop: 12, padding: '7px 16px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, color: '#00d4ff', fontSize: 12, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 280, overflowY: 'auto' }}>
+                    {filteredDocs.map(doc => (
+                      <motion.div key={doc.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: 10 }}>
+                        <div style={{ width: 36, height: 36, background: 'rgba(0,212,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>
+                          {getCategoryIcon(doc.category)}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                            <span style={{ fontSize: 10, padding: '1px 6px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 4, color: 'rgba(0,212,255,0.7)', fontWeight: 600 }}>
+                              {getCategoryLabel(doc.category)}
+                            </span>
+                            <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)' }}>{doc.date} · {doc.size}</span>
+                          </div>
+                        </div>
+                        <button onClick={() => openDocument(doc)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,212,255,0.6)', padding: 6, minHeight: 32 }} title="View"><Eye size={15} /></button>
+                        <button onClick={() => deleteDocument(doc.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,68,68,0.5)', padding: 6, minHeight: 32 }} title="Delete"><Trash2 size={15} /></button>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             {documents.length > 0 && (
@@ -493,7 +620,8 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 3: Doctor Specialty Suggestion + Medications ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+        <div id="medications" style={{position:"absolute",marginTop:-80}} />
+        <div className="dashboard-grid-equal">
 
           {/* Doctor Specialty Suggestion */}
           <WidgetCard title="Recommended Specialists" icon={Stethoscope} color="#00ff88">
@@ -541,7 +669,7 @@ export default function PatientDashboard() {
           <WidgetCard title="Medications" icon={Pill} color="#8b5cf6">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {medications.map((med, i) => (
-                <motion.div key={i} whileHover={{ x: 3 }} style={{ padding: '13px', background: `${med.color}08`, border: `1px solid ${med.color}20`, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <motion.div key={i} whileHover={{ x: 2 }} style={{ padding: '13px', background: `${med.color}08`, border: `1px solid ${med.color}20`, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: med.color, boxShadow: `0 0 8px ${med.color}`, flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 14, fontWeight: 700 }}>{med.name} <span style={{ fontSize: 12, fontWeight: 400, color: 'rgba(240,244,255,0.5)' }}>{med.dose}</span></p>
@@ -562,7 +690,8 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 4: Vitals Chart + Appointments ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginBottom: 20 }}>
+        <div id="appointments" style={{position:"absolute",marginTop:-80}} />
+        <div className="dashboard-grid-2-reverse">
           <WidgetCard title="Weekly Health Trends" icon={TrendingUp} color="#00d4ff">
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={vitalsData}>
@@ -725,7 +854,7 @@ export default function PatientDashboard() {
             Select a question below to get an instant AI-powered answer tailored to your health profile.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
+          <div className="dashboard-grid-equal" style={{ gap: 12, marginBottom: 20 }}>
             {AI_QA.map(cat => (
               <div key={cat.category}>
                 <button
