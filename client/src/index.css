@@ -87,34 +87,116 @@
   --text-secondary: #334155;
   --text-muted: #64748b;
 
-  /* Deepen accents for light mode visibility */
   --cyan: #0891b2;
   --green: #15803d;
   --purple: #7e22ce;
+  --pink: #db2777;
+  --red: #dc2626;
+  --amber: #d97706;
   --text-cyan: #0891b2;
   --text-green: #15803d;
 
-  --shadow-card: 0 4px 25px rgba(0, 0, 0, 0.06);
-  --shadow-cyan: 0 0 15px rgba(8, 145, 178, 0.1);
+  --cyan-glow: rgba(8, 145, 178, 0.15);
+  --green-glow: rgba(21, 128, 61, 0.15);
+  --purple-glow: rgba(126, 34, 206, 0.15);
+  --border-glow-cyan: rgba(8, 145, 178, 0.3);
+  --border-glow-green: rgba(21, 128, 61, 0.3);
+  --border-glow-purple: rgba(126, 34, 206, 0.3);
+
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-cyan: 0 0 10px rgba(8, 145, 178, 0.08);
+  --shadow-green: 0 0 10px rgba(21, 128, 61, 0.08);
+  --shadow-purple: 0 0 10px rgba(126, 34, 206, 0.08);
 }
 
+/* ─── Light mode: scrollbar ─── */
 .light ::-webkit-scrollbar-track { background: var(--bg-deep); }
 .light ::-webkit-scrollbar-thumb { background: rgba(8, 145, 178, 0.2); }
-.light .glass-card { 
-  background: var(--bg-card); 
-  border-color: var(--border-glass); 
-  box-shadow: var(--shadow-card);
+
+/* ─── Light mode: component overrides ─── */
+.light .glass-card { background: #fff !important; border-color: rgba(0,0,0,0.1) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important; }
+.light .glass-card-cyan { border-color: rgba(8,145,178,0.25) !important; }
+.light .input-glass { background: #fff !important; border-color: rgba(0,0,0,0.15) !important; color: #0f172a !important; }
+.light .input-glass::placeholder { color: #94a3b8 !important; }
+.light .btn-ghost { color: #334155 !important; }
+.light .landing-navbar { background: rgba(255,255,255,0.92) !important; border-bottom-color: rgba(0,0,0,0.08) !important; }
+.light .landing-mobile-menu { background: #fff !important; }
+.light .page-container, .light .main-content, .light .dashboard-layout, .light .dashboard-main { background: #f1f5f9 !important; }
+.light .sidebar-overlay { background: rgba(15,23,42,0.4) !important; }
+.light .text-glow-cyan { color: #0891b2 !important; text-shadow: none !important; }
+.light .text-glow-green { color: #15803d !important; text-shadow: none !important; }
+
+/* ─── NUCLEAR FIX: Force all text to be readable in light mode ─── */
+/* This catches ALL inline rgba(240,244,255,...) colors across every component */
+.light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
+  color: #0f172a !important;
 }
-.light .glass-card-cyan { border-color: rgba(8, 145, 178, 0.3); background: rgba(8, 145, 178, 0.02); }
-.light .input-glass { background: #fff; border-color: var(--border-glass); color: var(--text-primary); }
-.light .btn-ghost { color: var(--text-secondary); border-color: var(--border-glass); }
-.light .landing-navbar { background: rgba(255, 255, 255, 0.85); border-bottom-color: var(--border-subtle); }
-.light .landing-mobile-menu { background: #ffffff; }
-.light .page-container, .light .main-content, .light .dashboard-layout, .light .dashboard-main { background: var(--bg-deepest); }
-.light .sidebar-overlay { background: rgba(15, 23, 42, 0.4); }
-.light .text-glow-cyan { color: var(--cyan); text-shadow: none; }
-.light .text-glow-green { color: var(--green); text-shadow: none; }
-.light .gradient-text-cyan { background: linear-gradient(135deg, #0891b2, #15803d); -webkit-background-clip: text; }
+.light p, .light span, .light label, .light td, .light th, .light li, .light dd, .light dt {
+  color: #1e293b !important;
+}
+.light button {
+  color: #334155 !important;
+}
+.light a {
+  color: #0891b2 !important;
+}
+/* Preserve white text on gradient/colored buttons */
+.light button[style*="linear-gradient"],
+.light button[style*="#ff4444"],
+.light button[style*="#8b5cf6"] {
+  color: #fff !important;
+}
+/* Preserve colored accent text where intentional */
+.light [style*="color: #8b5cf6"],
+.light [style*="color: '#8b5cf6'"],
+.light [style*="color:#8b5cf6"] { color: #7e22ce !important; }
+.light [style*="color: #00d4ff"],
+.light [style*="color: '#00d4ff'"],
+.light [style*="color:#00d4ff"] { color: #0891b2 !important; }
+.light [style*="color: #00ff88"],
+.light [style*="color: '#00ff88'"],
+.light [style*="color:#00ff88"] { color: #15803d !important; }
+.light [style*="color: #ff4444"],
+.light [style*="color: '#ff4444'"],
+.light [style*="color:#ff4444"] { color: #dc2626 !important; }
+.light [style*="color: #f59e0b"],
+.light [style*="color: '#f59e0b'"],
+.light [style*="color:#f59e0b"] { color: #d97706 !important; }
+.light [style*="color: #ff6b6b"],
+.light [style*="color: '#ff6b6b'"] { color: #dc2626 !important; }
+
+/* Fix SVG/chart fills */
+.light svg text, .light svg .recharts-text { fill: #64748b !important; }
+.light .recharts-cartesian-grid line { stroke: rgba(0,0,0,0.06) !important; }
+.light .recharts-tooltip-wrapper .recharts-default-tooltip { background: #fff !important; border-color: rgba(0,0,0,0.1) !important; color: #0f172a !important; }
+
+/* Fix select/option elements */
+.light select, .light option { background: #fff !important; color: #0f172a !important; }
+
+/* Fix notification panel and dropdown backgrounds */
+.light [style*="rgba(6, 13, 28"],
+.light [style*="rgba(6,13,28"] { background: #fff !important; }
+
+/* Fix transparent/glass backgrounds that look bad on light */
+.light [style*="rgba(255,255,255,0.04)"],
+.light [style*="rgba(255,255,255,0.03)"],
+.light [style*="rgba(255,255,255,0.05)"],
+.light [style*="rgba(255,255,255,0.06)"],
+.light [style*="rgba(255,255,255,0.08)"] { background: rgba(0,0,0,0.03) !important; }
+
+/* Fix badge colors */
+.light .badge { color: #fff !important; }
+.light .badge-green { background: #15803d !important; }
+.light .badge-cyan { background: #0891b2 !important; }
+
+/* Fix border colors that used white-alpha */
+.light [style*="border: 1px solid rgba(255,255,255"] { border-color: rgba(0,0,0,0.1) !important; }
+
+/* Fix the ECG and particle backgrounds */
+.light .bg-grid { opacity: 0.03 !important; }
+
+/* Ensure kbd elements are visible */
+.light kbd { background: rgba(0,0,0,0.06) !important; border-color: rgba(0,0,0,0.12) !important; color: #64748b !important; }
 
 /* ── Reset & Base ── */
 *, *::before, *::after {
