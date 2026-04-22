@@ -41,12 +41,15 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'CureConnect API is running', timestamp: new Date().toISOString() });
 });
 
+const { startCronJobs } = require('./services/cronJobs');
+
 // MongoDB connection
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected — CureConnect DB online');
+    startCronJobs(); // Initialize email reminders
     app.listen(PORT, () => {
       console.log(`🚀 CureConnect API running on port ${PORT}`);
     });

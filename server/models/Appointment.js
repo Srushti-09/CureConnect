@@ -18,6 +18,7 @@ const AppointmentSchema = new mongoose.Schema({
   },
   reason: { type: String, default: '' },
   notes: { type: String, default: '' },
+  reminded: { type: Boolean, default: false },
   meetingLink: { type: String, default: '' }
 }, { timestamps: true });
 
