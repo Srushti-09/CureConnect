@@ -130,12 +130,26 @@ const handleSelect = (item) => {
   setShowSearch(false);
   setActiveIndex(-1);
 
-  if (item.type === 'patient') {
-    navigate(role === 'doctor' ? '/doctor#patients' : '/patient#locker');
-  } else if (item.type === 'record') {
-    navigate(role === 'doctor' ? '/doctor#records' : '/patient#locker');
+  const section = item.type === 'patient' ? 'patients' : 'records';
+  const target = role === 'doctor' ? section : 'locker';
+
+  // If already on the right page, scroll directly
+  const el = document.getElementById(target);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    // Navigate first, then scroll after page renders
+    navigate(role === 'doctor' ? `/doctor#${target}` : `/patient#${target}`);
+    setTimeout(() => {
+      const el2 = document.getElementById(target);
+      if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
   }
 };
+
+
+
+
 
   // Navigate within dashboard using hash (matches sidebar pattern)
   if (item.type === 'patient') {
