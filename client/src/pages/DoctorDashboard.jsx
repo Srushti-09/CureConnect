@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ECGLine from '../components/ECGLine';
+import ClinicStockTracker from '../components/ClinicStockTracker';
 import {
   Users, Calendar, ClipboardList, BarChart2, Brain,
   Plus, Search, ChevronRight, Clock, FileText,
@@ -497,6 +498,14 @@ export default function DoctorDashboard() {
             ))}
           </div>
         </WidgetCard>
+
+        {/* ── Row 4: Clinic Inventory Tracker ── */}
+        <div id="inventory" style={{position:"absolute",marginTop:-80}} />
+        <div style={{ marginTop: 24 }}>
+          <WidgetCard title="Clinic Medicine Inventory & Stock Tracker" icon={Pill} color="#ec4899">
+            <ClinicStockTracker doctorId={user?._id || 'demo_doctor'} />
+          </WidgetCard>
+        </div>
 
         {/* ── Prescription Modal ── */}
         {showPrescPad && (
