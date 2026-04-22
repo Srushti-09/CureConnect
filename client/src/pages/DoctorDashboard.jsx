@@ -329,6 +329,7 @@ export default function DoctorDashboard() {
         </div>
 
         {/* ── Row 1: Add Patient + My Patients ── */}
+        <div id="patients" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-2">
 
           {/* Add Patient via Code */}
@@ -450,6 +451,7 @@ export default function DoctorDashboard() {
         </div>
 
         {/* ── Row 2: Schedule + Analytics ── */}
+        <div id="analytics" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-2">
           <WidgetCard title="Today's Schedule" icon={Calendar} color="#00d4ff">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -481,6 +483,7 @@ export default function DoctorDashboard() {
         </div>
 
         {/* ── Row 3: AI Suggestions ── */}
+        <div id="ai" style={{position:"absolute",marginTop:-80}} />
         <WidgetCard title="AI Diagnosis Alerts" icon={Brain} color="#8b5cf6">
           <div className="ai-suggestions-grid">
             {aiSuggestions.map((s, i) => (

@@ -446,6 +446,7 @@ export default function PatientDashboard() {
         </motion.div>
 
         {/* ── Row 1: Score + Vitals ── */}
+        <div id="health" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-2">
           <WidgetCard title="Health Score" icon={Activity} color="#00ff88">
             <HealthMeter score={user?.healthScore || 78} />
@@ -472,6 +473,7 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 2: Documents + Access Code ── */}
+        <div id="locker" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-2-reverse">
 
           {/* Health Locker — Upload */}
@@ -618,6 +620,7 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 3: Doctor Specialty Suggestion + Medications ── */}
+        <div id="medications" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-equal">
 
           {/* Doctor Specialty Suggestion */}
@@ -687,6 +690,7 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 4: Vitals Chart + Appointments ── */}
+        <div id="appointments" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-2-reverse">
           <WidgetCard title="Weekly Health Trends" icon={TrendingUp} color="#00d4ff">
             <ResponsiveContainer width="100%" height={200}>
