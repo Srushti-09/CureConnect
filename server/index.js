@@ -3,10 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
+const { initializeSocket } = require('./services/socketHandler');
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 app.get('/', (req, res) => {
   res.send('CureConnect Backend is Running 🚀');
 });
@@ -25,6 +29,14 @@ app.use(cors({
   },
   credentials: true
 }));
+
+const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"]
+  }
+});
+initializeSocket(io);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -50,14 +62,14 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected — CureConnect DB online');
     startCronJobs(); // Initialize email reminders
-    app.listen(PORT, () => {
-      console.log(`🚀 CureConnect API running on port ${PORT}`);
+    server.listen(PORT, () => {
+      console.log(`🚀 CureConnect API & WebSockets running on port ${PORT}`);
     });
   })
   .catch(err => {
     console.error('❌ MongoDB connection failed:', err.message);
-    app.listen(PORT, () => {
-      console.log(`⚠️ CureConnect API running on port ${PORT} (no DB)`);
+    server.listen(PORT, () => {
+      console.log(`⚠️ CureConnect API & WebSockets running on port ${PORT} (no DB)`);
     });
   });
 
