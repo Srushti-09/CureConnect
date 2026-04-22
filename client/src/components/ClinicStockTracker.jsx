@@ -8,7 +8,7 @@ import {
 
 const CATEGORIES = ['Antibiotics', 'Analgesics', 'Vaccines', 'Supplies', 'Samples', 'Other'];
 
-export default function ClinicStockTracker({ doctorId = 'default' }) {
+export default function ClinicStockTracker({ doctorId = 'demo_user' }) {
   const [inventory, setInventory] = useState([]);
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,7 +30,12 @@ export default function ClinicStockTracker({ doctorId = 'default' }) {
       const initial = [
         { id: 1, name: 'Amoxicillin 500mg', category: 'Antibiotics', currentStock: 12, threshold: 10, unit: 'Strips' },
         { id: 2, name: 'Paracetamol 650mg', category: 'Analgesics', currentStock: 4, threshold: 15, unit: 'Strips' },
-        { id: 3, name: 'Surgical Gloves (M)', category: 'Supplies', currentStock: 45, threshold: 20, unit: 'Pairs' }
+        { id: 3, name: 'Surgical Gloves (M)', category: 'Supplies', currentStock: 45, threshold: 20, unit: 'Pairs' },
+        { id: 4, name: 'Metformin 500mg', category: 'Samples', currentStock: 25, threshold: 10, unit: 'Strips' },
+        { id: 5, name: 'Vitamin D3 60K', category: 'Samples', currentStock: 8, threshold: 12, unit: 'Capsules' },
+        { id: 6, name: 'Azithromycin 250mg', category: 'Antibiotics', currentStock: 3, threshold: 5, unit: 'Strips' },
+        { id: 7, name: 'Disposable Masks', category: 'Supplies', currentStock: 150, threshold: 50, unit: 'Pieces' },
+        { id: 8, name: 'Insulin Glargine', category: 'Samples', currentStock: 2, threshold: 5, unit: 'Vials' }
       ];
       setInventory(initial);
       localStorage.setItem(`cc_inventory_${doctorId}`, JSON.stringify(initial));
@@ -58,12 +63,37 @@ export default function ClinicStockTracker({ doctorId = 'default' }) {
   };
 
   const updateStock = (id, delta) => {
-    const updated = inventory.map(item => 
-      item.id === id 
-        ? { ...item, currentStock: Math.max(0, item.currentStock + delta) } 
-        : item
-    );
+    const updated = inventory.map(item => {
+      if (item.id === id) {
+        const newStock = Math.max(0, item.currentStock + delta);
+        
+        // Trigger alert if stock hits exactly or below threshold (and it wasn't already alerted)
+        if (newStock <= item.threshold && item.currentStock > item.threshold) {
+          triggerAlert(item.name, newStock, item.unit);
+        }
+        
+        return { ...item, currentStock: newStock };
+      }
+      return item;
+    });
     saveToStorage(updated);
+  };
+
+  const triggerAlert = (name, stock, unit) => {
+    const key = `cc_notifications_${doctorId}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const newAlert = {
+      id: Date.now(),
+      type: 'inventory_alert',
+      title: 'Low Stock Alert',
+      message: `${name} is running low (${stock} ${unit} remaining)`,
+      sentAt: new Date().toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      read: false
+    };
+    localStorage.setItem(key, JSON.stringify([...existing, newAlert]));
+    
+    // Also trigger a custom event so Navbar can refresh immediately
+    window.dispatchEvent(new Event('cc_notif_update'));
   };
 
   const deleteItem = (id) => {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Bell, Settings, LogOut, Search,
-  ChevronDown, Pill, X, Clock, User, FileText, Menu
+  ChevronDown, Pill, X, Clock, User, FileText, Menu, AlertTriangle
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ECGLine from './ECGLine';
@@ -159,25 +159,50 @@ const handleSelect = (item) => {
     inputRef.current?.focus();
   };
 
-  // ── Load notifications (prescriptions received) ──
+  // ── Load notifications (prescriptions & inventory alerts) ──
   useEffect(() => {
     const loadNotifs = () => {
       const userId = user?._id || 'demo';
-      const stored = JSON.parse(localStorage.getItem(`cc_prescriptions_${userId}`) || '[]');
-      setNotifications(stored);
+      
+      // Load prescriptions (for patients)
+      const prescriptions = JSON.parse(localStorage.getItem(`cc_prescriptions_${userId}`) || '[]');
+      const formattedRx = prescriptions.map(p => ({ ...p, type: 'prescription' }));
+      
+      // Load general notifications (for doctors/inventory)
+      const general = JSON.parse(localStorage.getItem(`cc_notifications_${userId}`) || '[]');
+      
+      // Merge and sort by time
+      const merged = [...formattedRx, ...general].sort((a,b) => b.id - a.id);
+      setNotifications(merged);
     };
+
     loadNotifs();
+    
+    // Listen for manual updates from components
+    window.addEventListener('cc_notif_update', loadNotifs);
     const iv = setInterval(loadNotifs, 5000);
-    return () => clearInterval(iv);
+    
+    return () => {
+      window.removeEventListener('cc_notif_update', loadNotifs);
+      clearInterval(iv);
+    };
   }, [user]);
 
   const unread = notifications.filter(n => !n.read).length;
 
   const markAllRead = () => {
     const userId = user?._id || 'demo';
-    const updated = notifications.map(n => ({ ...n, read: true }));
-    localStorage.setItem(`cc_prescriptions_${userId}`, JSON.stringify(updated));
-    setNotifications(updated);
+    
+    // Mark prescriptions read
+    const rx = JSON.parse(localStorage.getItem(`cc_prescriptions_${userId}`) || '[]');
+    localStorage.setItem(`cc_prescriptions_${userId}`, JSON.stringify(rx.map(n => ({ ...n, read: true }))));
+    
+    // Mark general read
+    const gen = JSON.parse(localStorage.getItem(`cc_notifications_${userId}`) || '[]');
+    localStorage.setItem(`cc_notifications_${userId}`, JSON.stringify(gen.map(n => ({ ...n, read: true }))));
+    
+    // Refresh local state
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const handleLogout = () => {
@@ -571,47 +596,59 @@ const handleSelect = (item) => {
                       <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.2)', marginTop: 6 }}>Prescriptions from your doctor will appear here</p>
                     </div>
                   ) : (
-                    [...notifications].reverse().map((notif, i) => (
+                    [...notifications].map((notif, i) => (
                       <motion.div
-                        key={i}
+                        key={notif.id || i}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         style={{
                           padding: '14px 20px',
                           borderBottom: '1px solid rgba(255,255,255,0.04)',
-                          background: notif.read ? 'transparent' : 'rgba(139,92,246,0.06)',
-                          borderLeft: notif.read ? '3px solid transparent' : '3px solid #8b5cf6',
+                          background: notif.read ? 'transparent' : (notif.type === 'inventory_alert' ? 'rgba(255,68,68,0.06)' : 'rgba(139,92,246,0.06)'),
+                          borderLeft: notif.read ? '3px solid transparent' : `3px solid ${notif.type === 'inventory_alert' ? '#ff4444' : '#8b5cf6'}`,
                         }}
                       >
                         <div style={{ display: 'flex', gap: 12 }}>
-                          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Pill size={16} color="#8b5cf6" />
+                          <div style={{ 
+                            width: 36, height: 36, borderRadius: 10, 
+                            background: notif.type === 'inventory_alert' ? 'rgba(255,68,68,0.15)' : 'rgba(139,92,246,0.15)', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
+                          }}>
+                            {notif.type === 'inventory_alert' ? <AlertTriangle size={16} color="#ff4444" /> : <Pill size={16} color="#8b5cf6" />}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                              <p style={{ fontSize: 13, fontWeight: 700 }}>Prescription Received</p>
-                              {!notif.read && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6', marginTop: 4, flexShrink: 0 }} />}
+                              <p style={{ fontSize: 13, fontWeight: 700 }}>{notif.type === 'inventory_alert' ? notif.title : 'Prescription Received'}</p>
+                              {!notif.read && <div style={{ width: 6, height: 6, borderRadius: '50%', background: notif.type === 'inventory_alert' ? '#ff4444' : '#8b5cf6', marginTop: 4, flexShrink: 0 }} />}
                             </div>
-                            <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.6)', marginBottom: 4 }}>
-                              From: <span style={{ color: '#8b5cf6' }}>Dr. {notif.doctorName}</span>
-                            </p>
-                            {notif.diagnosis && (
-                              <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', marginBottom: 4 }}>
-                                Diagnosis: {notif.diagnosis}
-                              </p>
-                            )}
-                            {notif.medications?.length > 0 && (
-                              <div style={{ marginTop: 6 }}>
-                                {notif.medications.filter(m => m.name).map((m, mi) => (
-                                  <div key={mi} style={{ fontSize: 12, color: 'rgba(240,244,255,0.7)', padding: '4px 8px', background: 'rgba(139,92,246,0.1)', borderRadius: 6, marginBottom: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                    💊 <strong>{m.name}</strong> {m.dose} — {m.frequency} {m.duration && `for ${m.duration}`}
+                            
+                            {notif.type === 'inventory_alert' ? (
+                              <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.65)', lineHeight: 1.5 }}>{notif.message}</p>
+                            ) : (
+                              <>
+                                <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.6)', marginBottom: 4 }}>
+                                  From: <span style={{ color: '#8b5cf6' }}>Dr. {notif.doctorName}</span>
+                                </p>
+                                {notif.diagnosis && (
+                                  <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', marginBottom: 4 }}>
+                                    Diagnosis: {notif.diagnosis}
+                                  </p>
+                                )}
+                                {notif.medications?.length > 0 && (
+                                  <div style={{ marginTop: 6 }}>
+                                    {notif.medications.filter(m => m.name).map((m, mi) => (
+                                      <div key={mi} style={{ fontSize: 12, color: 'rgba(240,244,255,0.7)', padding: '4px 8px', background: 'rgba(139,92,246,0.1)', borderRadius: 6, marginBottom: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                        💊 <strong>{m.name}</strong> {m.dose} — {m.frequency} {m.duration && `for ${m.duration}`}
+                                      </div>
+                                    ))}
                                   </div>
-                                ))}
-                              </div>
+                                )}
+                                {notif.notes && (
+                                  <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginTop: 6, fontStyle: 'italic' }}>"{notif.notes}"</p>
+                                )}
+                              </>
                             )}
-                            {notif.notes && (
-                              <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginTop: 6, fontStyle: 'italic' }}>"{notif.notes}"</p>
-                            )}
+
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
                               <Clock size={10} color="rgba(240,244,255,0.3)" />
                               <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.3)', fontFamily: 'JetBrains Mono, monospace' }}>{notif.sentAt}</span>
