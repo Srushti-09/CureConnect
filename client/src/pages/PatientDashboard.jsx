@@ -165,7 +165,7 @@ const HealthMeter = ({ score }) => {
   return (
     <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto' }}>
       <svg width="140" height="140" viewBox="0 0 140 140">
-        <circle cx="70" cy="70" r="50" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
+        <circle cx="70" cy="70" r="50" fill="none" stroke="var(--border-subtle)" strokeWidth="12" />
         <motion.circle cx="70" cy="70" r="50" fill="none" stroke={color} strokeWidth="12" strokeLinecap="round"
           strokeDasharray={c} initial={{ strokeDashoffset: c }}
           animate={{ strokeDashoffset: c - (score / 100) * c }}
@@ -175,7 +175,7 @@ const HealthMeter = ({ score }) => {
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: 30, fontWeight: 900, color }}>{score}</span>
-        <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.4)', fontFamily: 'JetBrains Mono, monospace' }}>SCORE</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>SCORE</span>
       </div>
     </div>
   );
@@ -429,7 +429,7 @@ export default function PatientDashboard() {
                   {user?.name?.split(' ')[0] || 'Patient'}
                 </span> 👋
               </h1>
-              <p style={{ color: 'rgba(240,244,255,0.45)', marginTop: 6, fontSize: 14 }}>
+              <p style={{ color: 'var(--text-muted)', marginTop: 6, fontSize: 14 }}>
                 Health score: {user?.healthScore || 78}/100 · 1 appointment today
               </p>
             </div>
@@ -464,8 +464,8 @@ export default function PatientDashboard() {
                     <v.icon size={16} color={v.color} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)' }}>{v.label}</p>
-                    <p style={{ fontSize: 17, fontWeight: 800, color: v.color }}>{v.value} <span style={{ fontSize: 10, fontWeight: 400, color: 'rgba(240,244,255,0.4)' }}>{v.unit}</span></p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{v.label}</p>
+                    <p style={{ fontSize: 17, fontWeight: 800, color: v.color }}>{v.value} <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text-muted)' }}>{v.unit}</span></p>
                   </div>
                 </motion.div>
               ))}
@@ -504,7 +504,7 @@ export default function PatientDashboard() {
                 {/* Search + Sort bar */}
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
                   <div style={{ flex: 1, position: 'relative' }}>
-                    <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(240,244,255,0.35)' }} />
+                    <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input
                       className="input-glass"
                       placeholder="Search records..."
@@ -517,7 +517,7 @@ export default function PatientDashboard() {
                     className="sort-select"
                     value={sortOrder}
                     onChange={e => setSortOrder(e.target.value)}
-                    style={{ background: 'rgba(10,22,40,0.9)' }}
+                    style={{ background: 'var(--bg-card)' }}
                   >
                     <option value="newest">Newest first</option>
                     <option value="oldest">Oldest first</option>
@@ -570,10 +570,10 @@ export default function PatientDashboard() {
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</p>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                            <span style={{ fontSize: 10, padding: '1px 6px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 4, color: 'rgba(0,212,255,0.7)', fontWeight: 600 }}>
+                            <span style={{ fontSize: 10, padding: '1px 6px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 4, color: 'var(--text-secondary)', fontWeight: 600 }}>
                               {getCategoryLabel(doc.category)}
                             </span>
-                            <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)' }}>{doc.date} · {doc.size}</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{doc.date} · {doc.size}</span>
                           </div>
                         </div>
                         <button onClick={() => openDocument(doc)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,212,255,0.6)', padding: 6, minHeight: 32 }} title="View"><Eye size={15} /></button>
@@ -594,13 +594,13 @@ export default function PatientDashboard() {
 
           {/* Doctor Access Code */}
           <WidgetCard title="Doctor Access Code" icon={Key} color="#8b5cf6">
-            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.5)', lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 20 }}>
               Share this code with your doctor to grant access to your health documents. They must enter it in their portal.
             </p>
 
             {/* Code display */}
             <div style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 14, padding: '20px', textAlign: 'center', marginBottom: 14 }}>
-              <p style={{ fontSize: 10, color: 'rgba(240,244,255,0.35)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 10, letterSpacing: 2 }}>YOUR PRIVATE ACCESS CODE</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 10, letterSpacing: 2 }}>YOUR PRIVATE ACCESS CODE</p>
               <p style={{ fontSize: 28, fontWeight: 900, letterSpacing: '6px', color: '#8b5cf6', fontFamily: 'JetBrains Mono, monospace' }}>{accessCode}</p>
             </div>
 
@@ -609,7 +609,7 @@ export default function PatientDashboard() {
                 {codeCopied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
                 {codeCopied ? 'Copied!' : 'Copy Code'}
               </button>
-              <button onClick={regenerateCode} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'rgba(240,244,255,0.5)', cursor: 'pointer' }} title="Generate new code">
+              <button onClick={regenerateCode} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text-secondary)', cursor: 'pointer' }} title="Generate new code">
                 <RefreshCw size={15} />
               </button>
             </div>
@@ -626,12 +626,12 @@ export default function PatientDashboard() {
 
           {/* Doctor Specialty Suggestion */}
           <WidgetCard title="Recommended Specialists" icon={Stethoscope} color="#00ff88">
-            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.45)', marginBottom: 16, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.6 }}>
               Based on your health records and conditions, we suggest visiting these specialists:
             </p>
             {specialtySuggestions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '30px 20px' }}>
-                <p style={{ fontSize: 14, color: 'rgba(240,244,255,0.35)' }}>Upload health documents to get specialist recommendations</p>
+                <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>Upload health documents to get specialist recommendations</p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -641,7 +641,7 @@ export default function PatientDashboard() {
                     <span style={{ fontSize: 24, flexShrink: 0 }}>{s.emoji}</span>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.spec}</p>
-                      <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginTop: 2 }}>{s.desc}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.desc}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -658,7 +658,7 @@ export default function PatientDashboard() {
                     <span style={{ fontSize: 24 }}>{s.emoji}</span>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.spec}</p>
-                      <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginTop: 2 }}>{s.desc}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -673,8 +673,8 @@ export default function PatientDashboard() {
                 <motion.div key={i} whileHover={{ x: 2 }} style={{ padding: '13px', background: `${med.color}08`, border: `1px solid ${med.color}20`, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: '50%', background: med.color, boxShadow: `0 0 8px ${med.color}`, flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 14, fontWeight: 700 }}>{med.name} <span style={{ fontSize: 12, fontWeight: 400, color: 'rgba(240,244,255,0.5)' }}>{med.dose}</span></p>
-                    <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.4)', marginTop: 2 }}>{med.freq} · {med.time}</p>
+                    <p style={{ fontSize: 14, fontWeight: 700 }}>{med.name} <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--text-secondary)' }}>{med.dose}</span></p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{med.freq} · {med.time}</p>
                   </div>
                   <button onClick={() => setMedStatus(s => ({ ...s, [i]: !s[i] }))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                     {medStatus[i]
@@ -703,8 +703,8 @@ export default function PatientDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="day" tick={{ fill: 'rgba(240,244,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(240,244,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="day" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ background: 'rgba(6,13,28,0.95)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 10, color: '#f0f4ff', fontSize: 13 }} />
                 <Area type="monotone" dataKey="bp" name="Systolic BP" stroke="#00d4ff" fill="url(#bpGrad)" strokeWidth={2} dot={false} />
                 <Area type="monotone" dataKey="hr" name="Heart Rate" stroke="#ff4444" fill="none" strokeWidth={2} dot={false} />
@@ -716,12 +716,12 @@ export default function PatientDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto' }}>
               {bookedAppointments.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '30px 20px' }}>
-                  <Calendar size={28} style={{ color: 'rgba(240,244,255,0.2)', marginBottom: 10 }} />
-                  <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.35)' }}>No appointments booked</p>
-                  <button onClick={() => setShowBooking(true)} style={{ marginTop: 10, padding: '8px 18px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, color: '#8b5cf6', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Book your first appointment</button>
+                  <Calendar size={28} style={{ color: 'var(--text-muted)', marginBottom: 10 }} />
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No appointments booked</p>
+                  <button onClick={() => setShowBooking(true)} style={{ marginTop: 10, padding: '8px 18px', background: 'var(--bg-accent-subtle)', border: '1px solid var(--border-accent)', borderRadius: 8, color: 'var(--text-accent)', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Book your first appointment</button>
                 </div>
               ) : bookedAppointments.map((appt) => (
-                <motion.div key={appt.id} whileHover={{ x: 3 }} style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 12 }}>
+                <motion.div key={appt.id} whileHover={{ x: 3 }} style={{ padding: '12px 14px', background: 'var(--bg-accent-subtle)', border: '1px solid var(--border-accent)', borderRadius: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
@@ -731,9 +731,9 @@ export default function PatientDashboard() {
                           {appt.type}
                         </span>
                       </div>
-                      <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)' }}>{appt.specialty}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{appt.specialty}</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                        <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={10} />{appt.date}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={10} />{appt.date}</span>
                         <span style={{ fontSize: 11, color: '#8b5cf6', fontWeight: 600 }}>{appt.time}</span>
                       </div>
                     </div>
@@ -760,25 +760,25 @@ export default function PatientDashboard() {
                     <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ fontSize: 60 }}>✅</motion.div>
                       <p style={{ fontSize: 18, fontWeight: 800, color: '#00ff88', marginTop: 16 }}>Appointment Booked!</p>
-                      <p style={{ fontSize: 14, color: 'rgba(240,244,255,0.5)', marginTop: 8 }}>Your appointment has been confirmed.</p>
+                      <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 8 }}>Your appointment has been confirmed.</p>
                     </div>
                   ) : (
                     <>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                         <div>
                           <h3 style={{ fontSize: 20, fontWeight: 800 }}>Book Appointment</h3>
-                          <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.4)', marginTop: 3 }}>Choose a doctor, date and time</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>Choose a doctor, date and time</p>
                         </div>
-                        <button onClick={() => setShowBooking(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(240,244,255,0.4)', fontSize: 20 }}>✕</button>
+                        <button onClick={() => setShowBooking(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 20 }}>✕</button>
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {/* Doctor select */}
                         <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DOCTOR</label>
+                          <label style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DOCTOR</label>
                           <select className="input-glass" value={bookForm.doctor}
                             onChange={e => { const doc = AVAILABLE_DOCTORS.find(d => d.name === e.target.value); setBookForm(f => ({ ...f, doctor: e.target.value, specialty: doc?.specialty || '', time: '' })); }}
-                            style={{ background: 'rgba(10,22,40,0.9)' }}>
+                            style={{ background: 'var(--bg-card)' }}>
                             <option value="">Choose a doctor...</option>
                             {AVAILABLE_DOCTORS.map(d => (
                               <option key={d.name} value={d.name}>{d.name} — {d.specialty}</option>
@@ -788,19 +788,19 @@ export default function PatientDashboard() {
 
                         {/* Date */}
                         <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DATE</label>
+                          <label style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DATE</label>
                           <input type="date" className="input-glass"
                             min={new Date().toISOString().split('T')[0]}
                             value={bookForm.date}
                             onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))}
-                            style={{ background: 'rgba(10,22,40,0.9)', colorScheme: 'dark' }}
+                            style={{ background: 'var(--bg-card)', colorScheme: 'dark' }}
                           />
                         </div>
 
                         {/* Time */}
                         {bookForm.doctor && (
                           <div>
-                            <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>AVAILABLE SLOTS</label>
+                            <label style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>AVAILABLE SLOTS</label>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                               {AVAILABLE_DOCTORS.find(d => d.name === bookForm.doctor)?.available.map(slot => (
                                 <button key={slot} onClick={() => setBookForm(f => ({ ...f, time: slot }))}
@@ -814,7 +814,7 @@ export default function PatientDashboard() {
 
                         {/* Type */}
                         <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>APPOINTMENT TYPE</label>
+                          <label style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>APPOINTMENT TYPE</label>
                           <div style={{ display: 'flex', gap: 8 }}>
                             {[{ id: 'video', label: '📹 Video Call' }, { id: 'call', label: '📞 Voice Call' }, { id: 'in-person', label: '🏥 In-Person' }].map(t => (
                               <button key={t.id} onClick={() => setBookForm(f => ({ ...f, type: t.id }))}
@@ -827,7 +827,7 @@ export default function PatientDashboard() {
 
                         {/* Reason */}
                         <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>REASON (OPTIONAL)</label>
+                          <label style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>REASON (OPTIONAL)</label>
                           <textarea className="input-glass" placeholder="Describe your symptoms or reason..." value={bookForm.reason}
                             onChange={e => setBookForm(f => ({ ...f, reason: e.target.value }))}
                             style={{ minHeight: 70, resize: 'vertical', fontFamily: 'Outfit, sans-serif', fontSize: 13 }}
@@ -851,7 +851,7 @@ export default function PatientDashboard() {
 
         {/* ── Row 5: AI Health Q&A ── */}
         <WidgetCard title="AI Health Assistant — Ask a Question" icon={Brain} color="#8b5cf6">
-          <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.45)', marginBottom: 20 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20 }}>
             Select a question below to get an instant AI-powered answer tailored to your health profile.
           </p>
 
@@ -874,7 +874,7 @@ export default function PatientDashboard() {
                           <button
                             key={qi}
                             onClick={() => setSelectedQ(selectedQ?.q === qa.q ? null : qa)}
-                            style={{ textAlign: 'left', padding: '10px 14px', background: selectedQ?.q === qa.q ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selectedQ?.q === qa.q ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, cursor: 'pointer', color: 'rgba(240,244,255,0.8)', fontSize: 13, fontFamily: 'Outfit, sans-serif', lineHeight: 1.5, transition: 'all 0.2s' }}
+                            style={{ textAlign: 'left', padding: '10px 14px', background: selectedQ?.q === qa.q ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selectedQ?.q === qa.q ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, cursor: 'pointer', color: 'var(--text-primary)', fontSize: 13, fontFamily: 'Outfit, sans-serif', lineHeight: 1.5, transition: 'all 0.2s' }}
                           >
                             {selectedQ?.q === qa.q ? '▼ ' : '▷ '}{qa.q}
                           </button>
@@ -896,14 +896,14 @@ export default function PatientDashboard() {
                 exit={{ opacity: 0, y: 10 }}
                 style={{ padding: '20px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 14, position: 'relative' }}
               >
-                <button onClick={() => setSelectedQ(null)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(240,244,255,0.4)' }}>
+                <button onClick={() => setSelectedQ(null)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                   <X size={16} />
                 </button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                   <span style={{ fontSize: 20 }}>🤖</span>
                   <p style={{ fontSize: 14, fontWeight: 700, color: '#8b5cf6' }}>{selectedQ.q}</p>
                 </div>
-                <p style={{ fontSize: 14, color: 'rgba(240,244,255,0.75)', lineHeight: 1.75 }}>{selectedQ.a}</p>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75 }}>{selectedQ.a}</p>
               </motion.div>
             )}
           </AnimatePresence>
