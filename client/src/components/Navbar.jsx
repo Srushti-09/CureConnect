@@ -1,11 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import {
   Bell, Settings, LogOut, Search,
-  ChevronDown, Pill, X, Clock, User, FileText, Menu,
-  Sun, Moon
+  ChevronDown, Pill, X, Clock, User, FileText, Menu
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ECGLine from './ECGLine';
@@ -54,7 +52,6 @@ function HighlightText({ text, query }) {
 
 export default function Navbar({ role, onToggleSidebar }) {
   const { user, logout } = useAuth();
-  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -442,25 +439,7 @@ export default function Navbar({ role, onToggleSidebar }) {
         alignItems: 'center',
         justifyContent: 'flex-end',
         gap: isMobile ? 6 : 12,
-      }}>
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="btn-ghost"
-          style={{
-            padding: '8px',
-            borderRadius: '50%',
-            width: isMobile ? 34 : 38,
-            height: isMobile ? 34 : 38,
-            justifyContent: 'center',
-            color: 'var(--text-primary)',
-          }}
-          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {isDarkMode ? <Sun size={17} /> : <Moon size={17} />}
-        </button>
-
-        {/* Notification Bell */}
+      }}>        {/* Notification Bell */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowNotifs(!showNotifs); setShowDropdown(false); }}
