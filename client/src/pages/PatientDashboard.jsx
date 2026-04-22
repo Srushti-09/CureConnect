@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ECGLine from '../components/ECGLine';
+import PatientHealthTimeline from '../components/PatientHealthTimeline';
 import {
   Activity, FileText, Calendar, Pill,
   TrendingUp, Heart, Plus, Upload, Search,
@@ -906,6 +907,11 @@ export default function PatientDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+        </WidgetCard>
+
+        {/* ── Row 6: Health Timeline ── */}
+        <WidgetCard title="Patient Health Timeline" icon={Activity} color="#00ff88" style={{ marginTop: 20 }}>
+          <PatientHealthTimeline />
         </WidgetCard>
 
       </main>
