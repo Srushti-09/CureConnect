@@ -43,11 +43,15 @@ const AppRoutes = () => {
   );
 };
 
+import { VideoCallProvider } from './context/VideoCallContext';
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <VideoCallProvider>
+          <AppRoutes />
+        </VideoCallProvider>
       </AuthProvider>
     </BrowserRouter>
   );
