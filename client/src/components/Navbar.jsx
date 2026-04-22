@@ -184,7 +184,7 @@ export default function Navbar({ role, onToggleSidebar }) {
     navigate('/');
   };
 
-  const accentColor = role === 'doctor' ? '#8b5cf6' : '#00d4ff';
+  const accentColor = role === 'doctor' ? 'var(--purple)' : 'var(--cyan)';
 
   return (
     <motion.nav
