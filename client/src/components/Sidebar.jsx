@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Heart, Home, FileText, Calendar, Pill,
   MessageCircle, AlertTriangle, Users, BarChart2,
-  ClipboardList, Activity, Stethoscope, ChevronLeft, X, Video
+  ClipboardList, Activity, Stethoscope, ChevronLeft, X
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -15,7 +15,6 @@ const patientNav = [
   { icon: Pill, label: 'Medications', path: '/patient#medications', section: 'records' },
   { icon: MessageCircle, label: 'AI Assistant', path: '/patient#ai', section: 'tools' },
   { icon: AlertTriangle, label: 'Emergency SOS', path: '/patient#sos', section: 'tools' },
-  { icon: Video, label: 'Video Consult', path: '/consult', section: 'tools' },
 ];
 
 const doctorNav = [
@@ -26,7 +25,6 @@ const doctorNav = [
   { icon: FileText, label: 'Records', path: '/doctor#records', section: 'records' },
   { icon: BarChart2, label: 'Analytics', path: '/doctor#analytics', section: 'tools' },
   { icon: MessageCircle, label: 'AI Diagnosis', path: '/doctor#ai', section: 'tools' },
-  { icon: Video, label: 'Video Consult', path: '/consult', section: 'tools' },
 ];
 
 export default function Sidebar({ role, mobileOpen, onClose }) {
@@ -34,9 +32,9 @@ export default function Sidebar({ role, mobileOpen, onClose }) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const navItems = role === 'doctor' ? doctorNav : patientNav;
-  const accentColor = role === 'doctor' ? 'var(--purple)' : 'var(--cyan)';
-  const gradientStart = role === 'doctor' ? 'var(--purple)' : 'var(--cyan)';
-  const gradientEnd = role === 'doctor' ? 'var(--pink)' : 'var(--green)';
+  const accentColor = role === 'doctor' ? '#8b5cf6' : '#00d4ff';
+  const gradientStart = role === 'doctor' ? '#8b5cf6' : '#00d4ff';
+  const gradientEnd = role === 'doctor' ? '#ec4899' : '#00ff88';
 
   const sections = [...new Set(navItems.map(n => n.section))];
 
@@ -77,7 +75,7 @@ export default function Sidebar({ role, mobileOpen, onClose }) {
           top: 0,
           left: 0,
           height: '100vh',
-          background: 'var(--bg-modal)',
+          background: 'var(--bg-sidebar)',
           borderRight: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',

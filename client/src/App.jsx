@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import LandingPage from './pages/LandingPage';
 import PersonaSelection from './pages/PersonaSelection';
 import AuthPage from './pages/AuthPage';
 import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
-import VideoConsultation from './pages/VideoConsultation';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user } = useAuth();
@@ -18,10 +18,10 @@ const ProtectedRoute = ({ children, role }) => {
 const AppRoutes = () => {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#030712' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-deepest)' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ width: 60, height: 60, border: '3px solid rgba(0,212,255,0.2)', borderTop: '3px solid #00d4ff', borderRadius: '50%', margin: '0 auto 16px', animation: 'spin-slow 1s linear infinite' }} />
-        <p style={{ color: '#00d4ff', fontFamily: 'Outfit, sans-serif', fontSize: 14 }}>Initializing CureConnect...</p>
+        <p style={{ color: 'var(--cyan)', fontFamily: 'Outfit, sans-serif', fontSize: 14 }}>Initializing CureConnect...</p>
       </div>
     </div>
   );
@@ -38,25 +38,20 @@ const AppRoutes = () => {
         <Route path="/doctor" element={
           <ProtectedRoute role="doctor"><DoctorDashboard /></ProtectedRoute>
         } />
-        <Route path="/consult" element={
-          <ProtectedRoute><VideoConsultation /></ProtectedRoute>
-        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
   );
 };
 
-import { VideoCallProvider } from './context/VideoCallContext';
-
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <VideoCallProvider>
+      <ThemeProvider>
+        <AuthProvider>
           <AppRoutes />
-        </VideoCallProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
