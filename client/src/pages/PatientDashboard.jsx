@@ -227,11 +227,10 @@ export default function PatientDashboard() {
     medications.reduce((acc, m, i) => ({ ...acc, [i]: m.status === 'taken' }), {})
   );
 
-  // Dynamically compute vitals
   const vitals = [
-    { icon: Heart, label: 'Heart Rate', value: liveVitals?.hr || (userConditionsText.includes('arrhythmia') ? '88' : '72'), unit: 'bpm', color: '#ff4444' },
-    { icon: Activity, label: 'Blood Pressure', value: liveVitals?.bp || (userConditionsText.includes('hypertension') || userConditionsText.includes('bp') ? '142/90' : '118/76'), unit: 'mmHg', color: '#00d4ff' },
-    { icon: Droplets, label: 'Blood Oxygen', value: liveVitals?.spo2 || (userConditionsText.includes('asthma') ? '94' : '98'), unit: '%', color: '#00ff88' },
+    { icon: Heart, label: 'Heart Rate', value: (userConditionsText.includes('arrhythmia') ? '88' : '72'), unit: 'bpm', color: '#ff4444' },
+    { icon: Activity, label: 'Blood Pressure', value: (userConditionsText.includes('hypertension') || userConditionsText.includes('bp') ? '142/90' : '118/76'), unit: 'mmHg', color: '#00d4ff' },
+    { icon: Droplets, label: 'Blood Oxygen', value: (userConditionsText.includes('asthma') ? '94' : '98'), unit: '%', color: '#00ff88' },
     { icon: Thermometer, label: 'Temperature', value: '98.4', unit: '°F', color: '#f59e0b' },
   ];
   if (userConditionsText.includes('diabetes')) {
