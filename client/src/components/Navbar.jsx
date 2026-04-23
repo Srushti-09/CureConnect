@@ -125,31 +125,27 @@ export default function Navbar({ role, onToggleSidebar }) {
     }
   };
 
-const handleSelect = (item) => {
-  setQuery(item.name);
-  setShowSearch(false);
-  setActiveIndex(-1);
+  const handleSelect = (item) => {
+    setQuery(item.name);
+    setShowSearch(false);
+    setActiveIndex(-1);
 
-  const section = item.type === 'patient' ? 'patients' : 'records';
-  const target = role === 'doctor' ? section : 'locker';
+    const section = item.type === 'patient' ? 'patients' : 'records';
+    const target = role === 'doctor' ? section : 'locker';
 
-  // If already on the right page, scroll directly
-  const el = document.getElementById(target);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else {
-    // Navigate first, then scroll after page renders
-    navigate(role === 'doctor' ? `/doctor#${target}` : `/patient#${target}`);
-    setTimeout(() => {
-      const el2 = document.getElementById(target);
-      if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-  }
-};
-
-
-
-
+    // If already on the right page, scroll directly
+    const el = document.getElementById(target);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Navigate first, then scroll after page renders
+      navigate(role === 'doctor' ? `/doctor#${target}` : `/patient#${target}`);
+      setTimeout(() => {
+        const el2 = document.getElementById(target);
+        if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
+    }
+  };
 
   const clearSearch = () => {
     setQuery('');
@@ -210,7 +206,7 @@ const handleSelect = (item) => {
     navigate('/');
   };
 
-  const accentColor = role === 'doctor' ? '#8b5cf6' : '#00d4ff';
+  const accentColor = role === 'doctor' ? 'var(--purple)' : 'var(--cyan)';
 
   return (
     <motion.nav
@@ -224,10 +220,10 @@ const handleSelect = (item) => {
         left: isMobile ? 0 : 260,
         right: 0,
         height: isMobile ? 56 : 68,
-        background: 'rgba(6, 13, 28, 0.9)',
+        background: 'var(--bg-card)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -456,60 +452,19 @@ const handleSelect = (item) => {
                   </span>
                 </motion.div>
               ))}
-
-              {/* Footer hint */}
-              <div style={{
-                padding: '8px 16px',
-                borderTop: '1px solid rgba(255,255,255,0.06)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-                <span style={{
-                  fontSize: 11,
-                  color: 'rgba(240,244,255,0.25)',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}>
-                  {suggestions.length} result{suggestions.length !== 1 ? 's' : ''}
-                </span>
-                {/* Keyboard hints — hidden on mobile (no keyboard nav) */}
-                {!isMobile && (
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <kbd style={{
-                      fontSize: 10, padding: '1px 5px', borderRadius: 4,
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'rgba(240,244,255,0.3)',
-                      fontFamily: 'JetBrains Mono, monospace',
-                    }}>↑↓</kbd>
-                    <span style={{ fontSize: 10, color: 'rgba(240,244,255,0.2)' }}>navigate</span>
-                    <kbd style={{
-                      fontSize: 10, padding: '1px 5px', borderRadius: 4,
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'rgba(240,244,255,0.3)',
-                      fontFamily: 'JetBrains Mono, monospace',
-                      marginLeft: 4,
-                    }}>↵</kbd>
-                    <span style={{ fontSize: 10, color: 'rgba(240,244,255,0.2)' }}>select</span>
-                  </div>
-                )}
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ── Right: Notifications + Profile ── */}
+      {/* ── Right: Theme Toggle + Notifications + Profile ── */}
       <div style={{
         flex: isMobile ? '0 0 auto' : 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
         gap: isMobile ? 6 : 12,
-      }}>
-
-        {/* Notification Bell */}
+      }}>        {/* Notification Bell */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => { setShowNotifs(!showNotifs); setShowDropdown(false); }}
@@ -542,7 +497,6 @@ const handleSelect = (item) => {
             )}
           </button>
 
-          {/* Notification Panel */}
           <AnimatePresence>
             {showNotifs && (
               <motion.div
@@ -554,9 +508,8 @@ const handleSelect = (item) => {
                   right: isMobile ? -60 : 0,
                   top: 'calc(100% + 10px)',
                   width: isMobile ? 'calc(100vw - 24px)' : 360,
-                  maxWidth: isMobile ? 'calc(100vw - 24px)' : 360,
-                  background: 'rgba(6,13,28,0.98)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-modal)',
+                  border: '1px solid var(--border-glass)',
                   borderRadius: 16,
                   padding: 0,
                   boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
@@ -565,26 +518,14 @@ const handleSelect = (item) => {
                 }}
               >
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border-subtle)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Bell size={15} color="#00d4ff" />
+                    <Bell size={15} color="var(--cyan)" />
                     <span style={{ fontWeight: 700, fontSize: 15 }}>Notifications</span>
-                    {unread > 0 && (
-                      <span style={{ background: '#ff4444', color: '#fff', fontSize: 11, borderRadius: 20, padding: '1px 7px', fontWeight: 700 }}>
-                        {unread} new
-                      </span>
-                    )}
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {unread > 0 && (
-                      <button onClick={markAllRead} style={{ fontSize: 12, color: '#00d4ff', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>
-                        Mark all read
-                      </button>
-                    )}
-                    <button onClick={() => setShowNotifs(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(240,244,255,0.4)' }}>
-                      <X size={15} />
-                    </button>
-                  </div>
+                  <button onClick={() => setShowNotifs(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                    <X size={15} />
+                  </button>
                 </div>
 
                 {/* Notification list */}
@@ -673,8 +614,8 @@ const handleSelect = (item) => {
               alignItems: 'center',
               gap: isMobile ? 6 : 10,
               padding: isMobile ? '4px 8px' : '6px 14px',
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--bg-glass)',
+              border: '1px solid var(--border-glass)',
               borderRadius: 40,
               cursor: 'pointer',
               color: 'var(--text-primary)',
@@ -693,16 +634,10 @@ const handleSelect = (item) => {
               fontSize: 13,
               fontWeight: 700,
               color: '#000',
-              flexShrink: 0,
             }}>
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
-            {/* Hide name on small mobile */}
-            {!isMobile && (
-              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: 'Outfit, sans-serif' }}>
-                {user?.name?.split(' ')[0]}
-              </span>
-            )}
+            {!isMobile && <span style={{ fontSize: 14, fontWeight: 600 }}>{user?.name?.split(' ')[0]}</span>}
             <ChevronDown size={14} style={{ opacity: 0.5 }} />
           </button>
 
@@ -717,32 +652,17 @@ const handleSelect = (item) => {
                   right: 0,
                   top: 'calc(100% + 10px)',
                   width: 200,
-                  background: 'rgba(6,13,28,0.98)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-modal)',
+                  border: '1px solid var(--border-glass)',
                   borderRadius: 14,
                   padding: 8,
                   boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
                   zIndex: 200,
                 }}
               >
-                <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 6 }}>
-                  <p style={{ fontSize: 14, fontWeight: 600 }}>{user?.name}</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                    {role === 'doctor' ? '🩺 Doctor' : '🫀 Patient'}
-                  </p>
-                </div>
-                <button
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', borderRadius: 8, fontSize: 14, fontFamily: 'Outfit, sans-serif' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                >
-                  <Settings size={15} /> Settings
-                </button>
                 <button
                   onClick={handleLogout}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', borderRadius: 8, fontSize: 14, fontFamily: 'Outfit, sans-serif' }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,68,68,0.08)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer', borderRadius: 8, fontSize: 14 }}
                 >
                   <LogOut size={15} /> Sign Out
                 </button>

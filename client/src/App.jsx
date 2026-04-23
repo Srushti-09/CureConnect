@@ -6,6 +6,7 @@ import PersonaSelection from './pages/PersonaSelection';
 import AuthPage from './pages/AuthPage';
 import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
+import VideoConsultation from './pages/VideoConsultation';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user } = useAuth();
@@ -37,17 +38,24 @@ const AppRoutes = () => {
         <Route path="/doctor" element={
           <ProtectedRoute role="doctor"><DoctorDashboard /></ProtectedRoute>
         } />
+        <Route path="/consult" element={
+          <ProtectedRoute><VideoConsultation /></ProtectedRoute>
+        } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AnimatePresence>
   );
 };
 
+import { VideoCallProvider } from './context/VideoCallContext';
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <VideoCallProvider>
+          <AppRoutes />
+        </VideoCallProvider>
       </AuthProvider>
     </BrowserRouter>
   );
