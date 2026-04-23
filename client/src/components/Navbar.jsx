@@ -1,9 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   Bell, Settings, LogOut, Search,
-  ChevronDown, Pill, X, Clock, User, FileText, Menu
+  ChevronDown, Pill, X, Clock, User, FileText, Menu, Sun, Moon
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import ECGLine from './ECGLine';
@@ -52,6 +53,7 @@ function HighlightText({ text, query }) {
 
 export default function Navbar({ role, onToggleSidebar }) {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -199,10 +201,10 @@ const handleSelect = (item) => {
         left: isMobile ? 0 : 260,
         right: 0,
         height: isMobile ? 56 : 68,
-        background: 'rgba(6, 13, 28, 0.9)',
+        background: 'var(--bg-navbar)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -324,12 +326,12 @@ const handleSelect = (item) => {
                 right: isMobile ? -12 : 0,
                 width: isMobile ? 'calc(100% + 24px)' : undefined,
                 maxWidth: isMobile ? 'calc(100vw - 24px)' : undefined,
-                background: 'rgba(6, 13, 28, 0.95)',
+                background: 'var(--bg-dropdown)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid var(--border-glass)',
                 borderRadius: 14,
-                boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(0,212,255,0.06)',
+                boxShadow: 'var(--shadow-card)',
                 overflow: 'hidden',
                 zIndex: 300,
               }}
@@ -475,7 +477,7 @@ const handleSelect = (item) => {
         </AnimatePresence>
       </div>
 
-      {/* ── Right: Notifications + Profile ── */}
+      {/* ── Right: Theme Toggle + Notifications + Profile ── */}
       <div style={{
         flex: isMobile ? '0 0 auto' : 1,
         display: 'flex',
@@ -483,6 +485,36 @@ const handleSelect = (item) => {
         justifyContent: 'flex-end',
         gap: isMobile ? 6 : 12,
       }}>
+
+        {/* Theme Toggle */}
+        <motion.button
+          onClick={toggleTheme}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="btn-ghost"
+          style={{
+            padding: '8px',
+            borderRadius: '50%',
+            width: isMobile ? 34 : 38,
+            height: isMobile ? 34 : 38,
+            justifyContent: 'center',
+            position: 'relative',
+          }}
+          aria-label="Toggle theme"
+          id="theme-toggle-btn"
+        >
+          <AnimatePresence mode="wait">
+            {theme === 'dark' ? (
+              <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                <Sun size={16} />
+              </motion.div>
+            ) : (
+              <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                <Moon size={16} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
 
         {/* Notification Bell */}
         <div style={{ position: 'relative' }}>
@@ -530,11 +562,11 @@ const handleSelect = (item) => {
                   top: 'calc(100% + 10px)',
                   width: isMobile ? 'calc(100vw - 24px)' : 360,
                   maxWidth: isMobile ? 'calc(100vw - 24px)' : 360,
-                  background: 'rgba(6,13,28,0.98)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-dropdown)',
+                  border: '1px solid var(--border-glass)',
                   borderRadius: 16,
                   padding: 0,
-                  boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+                  boxShadow: 'var(--shadow-card)',
                   zIndex: 200,
                   overflow: 'hidden',
                 }}
@@ -636,8 +668,8 @@ const handleSelect = (item) => {
               alignItems: 'center',
               gap: isMobile ? 6 : 10,
               padding: isMobile ? '4px 8px' : '6px 14px',
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.08)',
+              background: 'var(--bg-glass)',
+              border: '1px solid var(--border-glass)',
               borderRadius: 40,
               cursor: 'pointer',
               color: 'var(--text-primary)',
@@ -680,11 +712,11 @@ const handleSelect = (item) => {
                   right: 0,
                   top: 'calc(100% + 10px)',
                   width: 200,
-                  background: 'rgba(6,13,28,0.98)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--bg-dropdown)',
+                  border: '1px solid var(--border-glass)',
                   borderRadius: 14,
                   padding: 8,
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                  boxShadow: 'var(--shadow-card)',
                   zIndex: 200,
                 }}
               >

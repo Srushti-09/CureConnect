@@ -222,7 +222,7 @@ function HeroCarousel() {
         style={{
           position: 'absolute', left: -20, top: '50%', transform: 'translateY(-50%)',
           width: 40, height: 40, borderRadius: '50%',
-          background: 'rgba(6,13,28,0.9)', border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--bg-dropdown)', border: '1px solid var(--border-glass)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: 'rgba(240,244,255,0.7)',
           zIndex: 10,
@@ -235,7 +235,7 @@ function HeroCarousel() {
         style={{
           position: 'absolute', right: -20, top: '50%', transform: 'translateY(-50%)',
           width: 40, height: 40, borderRadius: '50%',
-          background: 'rgba(6,13,28,0.9)', border: '1px solid rgba(255,255,255,0.1)',
+          background: 'var(--bg-dropdown)', border: '1px solid var(--border-glass)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', color: 'rgba(240,244,255,0.7)',
           zIndex: 10,
@@ -340,7 +340,7 @@ export default function LandingPage() {
   const navLinks = ['Features', 'Security', 'Doctors', 'Pricing'];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#030712', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-deepest)', position: 'relative', overflow: 'hidden' }}>
       {/* Background layers */}
       <div className="bg-grid" />
       <div style={{ position: 'fixed', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -355,7 +355,7 @@ export default function LandingPage() {
             style={{
               position: 'fixed',
               inset: 0,
-              background: '#030712',
+              background: 'var(--bg-deepest)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -403,7 +403,7 @@ export default function LandingPage() {
             style={{
               position: 'fixed',
               inset: 0,
-              background: '#030712',
+              background: 'var(--bg-deepest)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',

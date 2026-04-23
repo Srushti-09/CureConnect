@@ -138,7 +138,7 @@ export default function AuthPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#030712',
+      background: 'var(--bg-deepest)',
       display: 'flex',
       position: 'relative',
       overflow: 'hidden',
@@ -348,12 +348,12 @@ export default function AuthPage() {
                   ) : (
                     <>
                       <select className="input-glass" value={bloodGroup} onChange={e => setBloodGroup(e.target.value)}
-                        style={{ background: 'rgba(10,22,40,0.9)', color: bloodGroup ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                        style={{ background: 'var(--select-bg)', color: bloodGroup ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                         <option value="">Blood Group (optional)</option>
                         {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
                       <select className="input-glass" value={gender} onChange={e => setGender(e.target.value)}
-                        style={{ background: 'rgba(10,22,40,0.9)' }}>
+                        style={{ background: 'var(--select-bg)' }}>
                         <option value="">Gender (optional)</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>

@@ -516,7 +516,7 @@ export default function PatientDashboard() {
                     className="sort-select"
                     value={sortOrder}
                     onChange={e => setSortOrder(e.target.value)}
-                    style={{ background: 'rgba(10,22,40,0.9)' }}
+                    style={{ background: 'var(--select-bg)' }}
                   >
                     <option value="newest">Newest first</option>
                     <option value="oldest">Oldest first</option>
@@ -704,7 +704,7 @@ export default function PatientDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis dataKey="day" tick={{ fill: 'rgba(240,244,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(240,244,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'rgba(6,13,28,0.95)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 10, color: '#f0f4ff', fontSize: 13 }} />
+                <Tooltip contentStyle={{ background: 'var(--bg-dropdown)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 10, color: 'var(--text-primary)', fontSize: 13 }} />
                 <Area type="monotone" dataKey="bp" name="Systolic BP" stroke="#00d4ff" fill="url(#bpGrad)" strokeWidth={2} dot={false} />
                 <Area type="monotone" dataKey="hr" name="Heart Rate" stroke="#ff4444" fill="none" strokeWidth={2} dot={false} />
               </AreaChart>
@@ -750,7 +750,7 @@ export default function PatientDashboard() {
           <AnimatePresence>
             {showBooking && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(3,7,18,0.88)', backdropFilter: 'blur(10px)', zIndex: 500 }}
+                style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-overlay)', backdropFilter: 'blur(10px)', zIndex: 500 }}
                 onClick={e => { if (e.target === e.currentTarget) setShowBooking(false); }}>
                 <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
                   className="glass-card" style={{ width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto', padding: 28, border: '1px solid rgba(139,92,246,0.25)', boxShadow: '0 0 80px rgba(139,92,246,0.15)' }}>
@@ -777,7 +777,7 @@ export default function PatientDashboard() {
                           <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DOCTOR</label>
                           <select className="input-glass" value={bookForm.doctor}
                             onChange={e => { const doc = AVAILABLE_DOCTORS.find(d => d.name === e.target.value); setBookForm(f => ({ ...f, doctor: e.target.value, specialty: doc?.specialty || '', time: '' })); }}
-                            style={{ background: 'rgba(10,22,40,0.9)' }}>
+                            style={{ background: 'var(--select-bg)' }}>
                             <option value="">Choose a doctor...</option>
                             {AVAILABLE_DOCTORS.map(d => (
                               <option key={d.name} value={d.name}>{d.name} — {d.specialty}</option>
@@ -792,7 +792,7 @@ export default function PatientDashboard() {
                             min={new Date().toISOString().split('T')[0]}
                             value={bookForm.date}
                             onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))}
-                            style={{ background: 'rgba(10,22,40,0.9)', colorScheme: 'dark' }}
+                            style={{ background: 'var(--select-bg)', colorScheme: 'dark' }}
                           />
                         </div>
 
