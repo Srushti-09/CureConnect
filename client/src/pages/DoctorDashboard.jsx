@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, api } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import ECGLine from '../components/ECGLine';
@@ -194,6 +194,25 @@ export default function DoctorDashboard() {
   const [viewingPatient, setViewingPatient] = useState(null);
   const [expandedPatient, setExpandedPatient] = useState(null);
 
+  // Symptom Cascade Alerts
+  const [cascadeAlerts, setCascadeAlerts] = useState([]);
+  const [loadingCascades, setLoadingCascades] = useState(true);
+
+  // Fetch cascade alerts on mount
+  useEffect(() => {
+    const fetchCascades = async () => {
+      try {
+        const res = await api.get('/symptoms/cascade-alerts');
+        setCascadeAlerts(res.data);
+      } catch (err) {
+        console.error('Failed to fetch cascade alerts:', err);
+      } finally {
+        setLoadingCascades(false);
+      }
+    };
+    fetchCascades();
+  }, []);
+
   // Load my patients from localStorage
   useEffect(() => {
     const doctorId = user?._id || 'demo_doctor';
@@ -308,7 +327,61 @@ export default function DoctorDashboard() {
               <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)', fontFamily: 'JetBrains Mono, monospace' }}>{s.delta}</p>
             </motion.div>
           ))}
-        </div>
+
+
+        {/* ── Symptom Cascade Alerts ── */}
+        {cascadeAlerts.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <WidgetCard title="🚨 Critical Alerts: Escalating Symptom Cascades" icon={AlertTriangle} color="#ff4444">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
+                {cascadeAlerts.map(alert => (
+                  <motion.div
+                    key={alert.patientId}
+                    whileHover={{ scale: 1.01 }}
+                    style={{
+                      background: 'rgba(255,68,68,0.05)',
+                      border: '1px solid rgba(255,68,68,0.3)',
+                      borderRadius: 12,
+                      padding: 16,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 12
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ color: '#ff4444', margin: 0, fontSize: 16 }}>{alert.patientName}</h4>
+                      <span style={{ fontSize: 12, padding: '4px 8px', background: 'rgba(255,68,68,0.1)', borderRadius: 12, color: '#ff4444', fontWeight: 'bold' }}>
+                        Score: {alert.cascadeScore}
+                      </span>
+                    </div>
+                    
+                    <div>
+                      <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>New Emerging Symptoms:</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {alert.newSymptomsDetected.map(s => (
+                          <span key={s} style={{ fontSize: 11, padding: '2px 8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10 }}>{s}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                      <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.7)' }}>Entries: <strong>{alert.totalEntries}</strong></p>
+                      <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.7)' }}>Max Sev: <strong style={{ color: '#ff4444' }}>{alert.maxSeverity}/5</strong></p>
+                    </div>
+
+                    <button className="btn-primary" style={{ padding: '8px', fontSize: 13, background: 'rgba(255,68,68,0.1)', color: '#ff4444', border: '1px solid rgba(255,68,68,0.3)' }} onClick={() => {
+                        setPrescPatient(alert.patientName);
+                        setPrescPatientId(alert.patientId);
+                        setShowPrescPad(true);
+                      }}>
+                      Review & Prescribe
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            </WidgetCard>
+          </div>
+        )}
 
         {/* ── Row 1: Add Patient + My Patients ── */}
         <div id="patients" style={{position:"absolute",marginTop:-80}} />

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth, api } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
+import SymptomLogger from '../components/SymptomLogger';
 
 import {
   Activity, FileText, Calendar, Pill,
@@ -514,7 +515,7 @@ export default function PatientDashboard() {
 
         {/* ── Row 1: Score + Vitals ── */}
         <div id="health" style={{position:"absolute",marginTop:-80}} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
 
           <WidgetCard title="Today's Vitals" icon={Heart} color="#ff4444">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
@@ -530,6 +531,11 @@ export default function PatientDashboard() {
                 </motion.div>
               ))}
             </div>
+          </WidgetCard>
+
+          {/* ── Symptom Tracker ── */}
+          <WidgetCard title="Daily Symptom Tracker" icon={Activity} color="#f59e0b">
+            <SymptomLogger />
           </WidgetCard>
         </div>
 
