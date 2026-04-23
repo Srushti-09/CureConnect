@@ -3,13 +3,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-<<<<<<< HEAD
-
-import ClinicStockTracker from '../components/ClinicStockTracker';
-=======
 import ECGLine from '../components/ECGLine';
 
->>>>>>> fix-pr
 import {
   Users, Calendar, ClipboardList, BarChart2, Brain,
   Plus, Search, ChevronRight, Clock, FileText,
