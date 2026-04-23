@@ -62,8 +62,26 @@ export const VideoCallProvider = ({ children }) => {
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
 
-    socket.emit('answerCall', { signal: answer, to: call.from });
-    connectionRef.current = peer;
+    const sendAnswer = () => {
+      socket.emit('answerCall', { signal: peer.localDescription, to: call.from });
+      connectionRef.current = peer;
+    };
+
+    if (peer.iceGatheringState === 'complete') {
+      sendAnswer();
+    } else {
+      peer.onicegatheringstatechange = () => {
+        if (peer.iceGatheringState === 'complete') {
+          sendAnswer();
+        }
+      };
+      // Fallback timeout in case gathering gets stuck
+      setTimeout(() => {
+        if (peer.iceGatheringState !== 'complete') {
+          sendAnswer();
+        }
+      }, 2000);
+    }
   };
 
   const callUser = async (idToCall) => {
@@ -86,7 +104,24 @@ export const VideoCallProvider = ({ children }) => {
     const offer = await peer.createOffer();
     await peer.setLocalDescription(offer);
 
-    socket.emit('callUser', { userToCall: idToCall, signalData: offer, from: me, name });
+    const sendOffer = () => {
+      socket.emit('callUser', { userToCall: idToCall, signalData: peer.localDescription, from: me, name });
+    };
+
+    if (peer.iceGatheringState === 'complete') {
+      sendOffer();
+    } else {
+      peer.onicegatheringstatechange = () => {
+        if (peer.iceGatheringState === 'complete') {
+          sendOffer();
+        }
+      };
+      setTimeout(() => {
+        if (peer.iceGatheringState !== 'complete') {
+          sendOffer();
+        }
+      }, 2000);
+    }
 
     socket.on('callAccepted', (signal) => {
       setCallAccepted(true);
