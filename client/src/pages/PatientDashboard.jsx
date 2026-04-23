@@ -510,7 +510,6 @@ export default function PatientDashboard() {
               </p>
             </div>
           </div>
-          <div style={{ marginTop: 16 }}><ECGLine color="#00d4ff" height={44} /></div>
         </motion.div>
 
         {/* ── Row 1: Score + Vitals ── */}
