@@ -63,30 +63,33 @@ export default function VideoConsultation() {
       <h2 style={{ color: '#00d4ff', marginBottom: '1rem' }}>Consultation Room</h2>
       
       {/* Video Grid */}
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Local Video */}
-        {stream && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', border: '2px solid rgba(0, 212, 255, 0.3)' }}
-          >
-            <video playsInline muted ref={myVideo} autoPlay style={{ width: '400px', backgroundColor: '#111' }} />
-            <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: '8px', fontSize: 14 }}>
-              {user?.name || 'You'}
+      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: '1200px' }}>
+        {/* Local Video - Always rendered so ref exists */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', border: '2px solid rgba(0, 212, 255, 0.4)', flex: '1 1 400px', maxWidth: '600px', aspectRatio: '16/9', background: '#111', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}
+        >
+          <video playsInline muted ref={myVideo} autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', bottom: 16, left: 16, background: 'rgba(0,0,0,0.7)', padding: '6px 16px', borderRadius: '12px', fontSize: 16, fontWeight: 'bold' }}>
+            {user?.name || 'You'}
+          </div>
+          {!stream && (
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#00d4ff' }}>
+              Starting Camera...
             </div>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
 
-        {/* Remote Video */}
+        {/* Remote Video - Always rendered if call Accepted */}
         {callAccepted && !callEnded && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', border: '2px solid #7c3aed' }}
+            style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', border: '2px solid #7c3aed', flex: '1 1 400px', maxWidth: '600px', aspectRatio: '16/9', background: '#111', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}
           >
-            <video playsInline ref={userVideo} autoPlay style={{ width: '400px', backgroundColor: '#111' }} />
-            <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: '8px', fontSize: 14 }}>
+            <video playsInline ref={userVideo} autoPlay style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div style={{ position: 'absolute', bottom: 16, left: 16, background: 'rgba(0,0,0,0.7)', padding: '6px 16px', borderRadius: '12px', fontSize: 16, fontWeight: 'bold' }}>
               {call.name || 'Remote User'}
             </div>
           </motion.div>
