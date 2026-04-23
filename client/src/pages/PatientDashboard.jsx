@@ -621,6 +621,8 @@ export default function PatientDashboard() {
         </div>
 
         {/* ── Row 3: Doctor Specialty Suggestion + Medications ── */}
+        <div id="ai" style={{position:"absolute",marginTop:-80}} />
+        <div id="sos" style={{position:"absolute",marginTop:-80}} />
         <div id="medications" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-equal">
 

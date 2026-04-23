@@ -162,7 +162,7 @@ const handleSelect = (item) => {
   // ── Load notifications (prescriptions & inventory alerts) ──
   useEffect(() => {
     const loadNotifs = () => {
-      const userId = user?._id || 'demo';
+      const userId = user?._id || 'demo_user';
       
       // Load prescriptions (for patients)
       const prescriptions = JSON.parse(localStorage.getItem(`cc_prescriptions_${userId}`) || '[]');
@@ -191,7 +191,7 @@ const handleSelect = (item) => {
   const unread = notifications.filter(n => !n.read).length;
 
   const markAllRead = () => {
-    const userId = user?._id || 'demo';
+    const userId = user?._id || 'demo_user';
     
     // Mark prescriptions read
     const rx = JSON.parse(localStorage.getItem(`cc_prescriptions_${userId}`) || '[]');

@@ -196,12 +196,33 @@ export default function Sidebar({ role, mobileOpen, onClose }) {
               )}
               {navItems.filter(n => n.section === section).map(item => {
                 const active = location.pathname === item.path.split('#')[0];
-                return (
-                  <Link
-                    key={item.label}
-                    to={item.path}
-                    onClick={() => { if (isMobile) onClose?.(); }}
-                    style={{
+    const scroll = (id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    const handleNav = (e, item) => {
+      if (item.path.includes('#')) {
+        const [path, hash] = item.path.split('#');
+        if (location.pathname === path) {
+          e.preventDefault();
+          scroll(hash);
+          if (isMobile) onClose?.();
+        }
+      }
+    };
+
+    return (
+      <Link
+        key={item.label}
+        to={item.path}
+        onClick={(e) => {
+          handleNav(e, item);
+          if (isMobile) onClose?.();
+        }}
+        style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 12,

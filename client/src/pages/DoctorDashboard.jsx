@@ -453,6 +453,10 @@ export default function DoctorDashboard() {
 
         {/* ── Row 2: Schedule + Analytics ── */}
         <div id="analytics" style={{position:"absolute",marginTop:-80}} />
+        {/* Placeholder for Records/Prescriptions which are part of the Patients list or other cards */}
+        <div id="prescriptions" style={{position:"absolute",marginTop:-80}} />
+        <div id="records" style={{position:"absolute",marginTop:-80}} />
+        <div id="appointments" style={{position:"absolute",marginTop:-80}} />
         <div className="dashboard-grid-2">
           <WidgetCard title="Today's Schedule" icon={Calendar} color="#00d4ff">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
