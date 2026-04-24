@@ -251,7 +251,7 @@ export default function PatientDashboard() {
   });
   const [bookSuccess, setBookSuccess] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Fetch available slots when doctor + date are selected
   useEffect(() => {
@@ -259,11 +259,19 @@ export default function PatientDashboard() {
       setAvailableSlots([]);
       return;
     }
-    setLoadingSlots(true);
+    setLoading(true);
+    console.log('Fetching slots for doctor:', bookForm.doctor, 'date:', bookForm.date);
     api.get(`/appointments/slots/${bookForm.doctor}/${bookForm.date}`)
-      .then(res => setAvailableSlots(res.data.slots))
-      .catch(console.error)
-      .finally(() => setLoadingSlots(false));
+      .then(res => {
+        const slots = res.data?.slots || [];
+        console.log('Slots received:', slots);
+        setAvailableSlots(slots);
+      })
+      .catch(err => {
+        console.error('Error fetching slots:', err);
+        setAvailableSlots([]);
+      })
+      .finally(() => setLoading(false));
   }, [bookForm.doctor, bookForm.date]);
 
   // Fetch initial dynamic data from backend
@@ -847,39 +855,41 @@ export default function PatientDashboard() {
                         </div>
 
                         {/* Time Slot Grid */}
-                        {bookForm.doctor && bookForm.date && (
-                          <div>
-                            <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>TIME SLOTS</label>
-                            {loadingSlots ? (
-                              <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Loading slots...</p>
-                            ) : (
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                                {availableSlots.map(slot => (
-                                  <button
-                                    key={slot.time}
-                                    disabled={!slot.available}
-                                    onClick={() => setBookForm(f => ({ ...f, timeSlot: slot.time }))}
-                                    style={{
-                                      padding: '10px 8px',
-                                      background: !slot.available ? 'rgba(255,68,68,0.08)' : bookForm.timeSlot === slot.time ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.04)',
-                                      border: `1px solid ${!slot.available ? 'rgba(255,68,68,0.2)' : bookForm.timeSlot === slot.time ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`,
-                                      borderRadius: 8,
-                                      color: !slot.available ? 'rgba(255,68,68,0.4)' : bookForm.timeSlot === slot.time ? '#8b5cf6' : 'rgba(240,244,255,0.6)',
-                                      fontSize: 13,
-                                      cursor: !slot.available ? 'not-allowed' : 'pointer',
-                                      fontFamily: 'Outfit, sans-serif',
-                                      fontWeight: bookForm.timeSlot === slot.time ? 700 : 400,
-                                      textDecoration: !slot.available ? 'line-through' : 'none',
-                                      opacity: !slot.available ? 0.5 : 1
-                                    }}
-                                  >
-                                    {slot.time}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        <div>
+                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>TIME SLOTS</label>
+                          {!bookForm.doctor || !bookForm.date ? (
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Select doctor and date</p>
+                          ) : loading ? (
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Loading slots...</p>
+                          ) : availableSlots.length === 0 ? (
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>No slots available</p>
+                          ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                              {availableSlots.map(slot => (
+                                <button
+                                  key={slot.time}
+                                  disabled={!slot.available}
+                                  onClick={() => setBookForm(f => ({ ...f, timeSlot: slot.time }))}
+                                  style={{
+                                    padding: '10px 8px',
+                                    background: !slot.available ? 'rgba(255,68,68,0.08)' : bookForm.timeSlot === slot.time ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${!slot.available ? 'rgba(255,68,68,0.2)' : bookForm.timeSlot === slot.time ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                                    borderRadius: 8,
+                                    color: !slot.available ? 'rgba(255,68,68,0.4)' : bookForm.timeSlot === slot.time ? '#8b5cf6' : 'rgba(240,244,255,0.6)',
+                                    fontSize: 13,
+                                    cursor: !slot.available ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'Outfit, sans-serif',
+                                    fontWeight: bookForm.timeSlot === slot.time ? 700 : 400,
+                                    textDecoration: !slot.available ? 'line-through' : 'none',
+                                    opacity: !slot.available ? 0.5 : 1
+                                  }}
+                                >
+                                  {slot.time}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
 
                         {/* Reason */}
                         <div>
