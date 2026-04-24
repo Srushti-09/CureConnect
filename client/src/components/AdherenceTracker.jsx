@@ -126,6 +126,11 @@ const AdherenceTracker = () => {
     );
   }
 
+  const getTodaysLogs = () => {
+    const today = new Date().toDateString();
+    return adherenceLogs.filter(log => new Date(log.createdAt).toDateString() === today);
+  };
+
   const todaysLogs = getTodaysLogs();
   const upcomingDoses = getUpcomingDoses();
 

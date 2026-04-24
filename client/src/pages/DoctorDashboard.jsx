@@ -416,6 +416,7 @@ export default function DoctorDashboard() {
   const [prescPatientId, setPrescPatientId] = useState('');
   const [viewingPatient, setViewingPatient] = useState(null);
   const [expandedPatient, setExpandedPatient] = useState(null);
+  const [selectedInteractionMeds, setSelectedInteractionMeds] = useState([]);
 
   // Load my patients from localStorage
   useEffect(() => {
@@ -691,21 +692,55 @@ export default function DoctorDashboard() {
           </WidgetCard>
         </div>
 
-        {/* ── Row 3: AI Suggestions ── */}
+        {/* ── Row 3: AI Diagnosis & Drug Interactions ── */}
         <div id="ai" style={{position:"absolute",marginTop:-80}} />
-        <WidgetCard title="AI Diagnosis Alerts" icon={Brain} color="#8b5cf6">
-          <div className="ai-suggestions-grid">
-            {aiSuggestions.map((s, i) => (
-              <motion.div key={i} whileHover={{ y: -2 }} style={{ padding: '16px', background: s.urgency === 'high' ? 'rgba(255,68,68,0.08)' : s.urgency === 'medium' ? 'rgba(245,158,11,0.08)' : 'rgba(0,255,136,0.06)', border: `1px solid ${s.urgency === 'high' ? 'rgba(255,68,68,0.2)' : s.urgency === 'medium' ? 'rgba(245,158,11,0.2)' : 'rgba(0,255,136,0.15)'}`, borderRadius: 12 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontSize: 18 }}>{s.icon}</span>
-                  <p style={{ fontSize: 13, fontWeight: 700 }}>{s.patient}</p>
-                </div>
-                <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.6)', lineHeight: 1.6 }}>{s.suggestion}</p>
-              </motion.div>
-            ))}
-          </div>
-        </WidgetCard>
+        <div className="dashboard-grid-2">
+          <WidgetCard title="AI Diagnosis Alerts" icon={Brain} color="#8b5cf6">
+            <div className="ai-suggestions-grid">
+              {aiSuggestions.map((s, i) => (
+                <motion.div key={i} whileHover={{ y: -2 }} style={{ padding: '16px', background: s.urgency === 'high' ? 'rgba(255,68,68,0.08)' : s.urgency === 'medium' ? 'rgba(245,158,11,0.08)' : 'rgba(0,255,136,0.06)', border: `1px solid ${s.urgency === 'high' ? 'rgba(255,68,68,0.2)' : s.urgency === 'medium' ? 'rgba(245,158,11,0.2)' : 'rgba(0,255,136,0.15)'}`, borderRadius: 12 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 18 }}>{s.icon}</span>
+                    <p style={{ fontSize: 13, fontWeight: 700 }}>{s.patient}</p>
+                  </div>
+                  <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.6)', lineHeight: 1.6 }}>{s.suggestion}</p>
+                </motion.div>
+              ))}
+            </div>
+          </WidgetCard>
+
+          <WidgetCard title="Quick Interaction Checker" icon={AlertCircle} color="#ff4444">
+            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.45)', marginBottom: 16, lineHeight: 1.6 }}>
+              Quickly check for dangerous drug-to-drug interactions before prescribing.
+            </p>
+            <div style={{ marginBottom: 16 }}>
+              <MedicineAutocomplete
+                onSelect={(med) => setSelectedInteractionMeds(prev => [...prev, med])}
+                onRemove={(med) => setSelectedInteractionMeds(prev => prev.filter(m => m.name !== med.name))}
+                selectedMedicines={selectedInteractionMeds}
+                placeholder="Type medicine names to check..."
+              />
+            </div>
+            {selectedInteractionMeds.length >= 2 && (
+              <div style={{ maxHeight: 300, overflowY: 'auto', padding: 2, borderRadius: 12 }}>
+                <InteractionChecker medications={selectedInteractionMeds} />
+              </div>
+            )}
+            {selectedInteractionMeds.length < 2 && (
+              <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 12 }}>
+                <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.3)' }}>Add at least 2 medications to check for interactions</p>
+              </div>
+            )}
+            {selectedInteractionMeds.length > 0 && (
+               <button 
+                 onClick={() => setSelectedInteractionMeds([])}
+                 style={{ marginTop: 12, width: '100%', padding: '8px', background: 'rgba(255,68,68,0.1)', border: '1px solid rgba(255,68,68,0.2)', borderRadius: 8, color: '#ff6b6b', fontSize: 12, cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}
+               >
+                 Clear Check
+               </button>
+            )}
+          </WidgetCard>
+        </div>
 
         {/* ── Row 4: Clinic Inventory Tracker ── */}
         <div id="inventory" style={{position:"absolute",marginTop:-80}} />
