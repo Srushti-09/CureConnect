@@ -251,27 +251,17 @@ export default function PatientDashboard() {
   });
   const [bookSuccess, setBookSuccess] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   // Fetch available slots when doctor + date are selected
   useEffect(() => {
-    if (!bookForm.doctor || !bookForm.date) {
-      setAvailableSlots([]);
-      return;
+    if (bookForm.doctor && bookForm.date) {
+      api.get(`/appointments/slots/${bookForm.doctor}/${bookForm.date}`)
+        .then(res => {
+          console.log("Slots response:", res.data);
+          setAvailableSlots(res.data.slots);
+        })
+        .catch(err => console.error(err));
     }
-    setLoading(true);
-    console.log('Fetching slots for doctor:', bookForm.doctor, 'date:', bookForm.date);
-    api.get(`/appointments/slots/${bookForm.doctor}/${bookForm.date}`)
-      .then(res => {
-        const slots = res.data?.slots || [];
-        console.log('Slots received:', slots);
-        setAvailableSlots(slots);
-      })
-      .catch(err => {
-        console.error('Error fetching slots:', err);
-        setAvailableSlots([]);
-      })
-      .finally(() => setLoading(false));
   }, [bookForm.doctor, bookForm.date]);
 
   // Fetch initial dynamic data from backend
@@ -859,10 +849,8 @@ export default function PatientDashboard() {
                           <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>TIME SLOTS</label>
                           {!bookForm.doctor || !bookForm.date ? (
                             <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Select doctor and date</p>
-                          ) : loading ? (
-                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Loading slots...</p>
                           ) : availableSlots.length === 0 ? (
-                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>No slots available</p>
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Loading slots...</p>
                           ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                               {availableSlots.map(slot => (
