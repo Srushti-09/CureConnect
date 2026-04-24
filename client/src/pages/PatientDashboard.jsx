@@ -14,6 +14,8 @@ import {
   Stethoscope, AlertTriangle, X, Eye,
   ChevronDown, CheckCircle2, Trash2, Video, MapPin, Phone, ArrowUpDown, User
 } from 'lucide-react';
+import MedicineAutocomplete from '../components/MedicineAutocomplete';
+import InteractionChecker from '../components/InteractionChecker';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
@@ -223,6 +225,7 @@ export default function PatientDashboard() {
   // Daily Vitals Modal State
   const [showVitalsModal, setShowVitalsModal] = useState(false);
   const [liveVitals, setLiveVitals] = useState(null);
+  const [selectedInteractionMeds, setSelectedInteractionMeds] = useState([]);
 
   // Check if vitals have been logged today
   useEffect(() => {
@@ -787,6 +790,27 @@ export default function PatientDashboard() {
                 ))}
               </div>
             )}
+
+            <div style={{ marginTop: 24, padding: '16px', background: 'rgba(255,68,68,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ width: 30, height: 30, background: 'rgba(255,68,68,0.15)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertTriangle size={16} color="#ff4444" />
+                </div>
+                <h4 style={{ fontSize: 14, fontWeight: 700 }}>Interaction Intelligence</h4>
+              </div>
+              <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginBottom: 12 }}>Check for dangerous side effects when taking multiple medications.</p>
+              <MedicineAutocomplete
+                onSelect={(med) => setSelectedInteractionMeds(prev => [...prev, med])}
+                onRemove={(med) => setSelectedInteractionMeds(prev => prev.filter(m => m.name !== med.name))}
+                selectedMedicines={selectedInteractionMeds}
+                placeholder="Type medicine names..."
+              />
+              {selectedInteractionMeds.length >= 2 && (
+                <div style={{ marginTop: 12, maxHeight: 200, overflowY: 'auto' }}>
+                  <InteractionChecker medications={selectedInteractionMeds} />
+                </div>
+              )}
+            </div>
           </WidgetCard>
 
           {/* Medication Adherence Tracker */}

@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'https://aisham30-cureconnect.onrender.com',
+        target: process.env.VITE_API_URL || 'https://cureconnect-hfea.onrender.com',
         changeOrigin: true
       }
     }
