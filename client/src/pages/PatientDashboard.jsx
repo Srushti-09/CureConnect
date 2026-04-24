@@ -248,33 +248,43 @@ export default function PatientDashboard() {
   const [showBooking, setShowBooking] = useState(false);
   const [bookedAppointments, setBookedAppointments] = useState([]);
   const [bookForm, setBookForm] = useState({
-    doctor: '', specialty: '', date: '', time: '', type: 'video', reason: ''
+    doctor: '', date: '', timeSlot: '', reason: ''
   });
   const [bookSuccess, setBookSuccess] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch available slots when doctor + date are selected
+  useEffect(() => {
+    if (!bookForm.doctor || !bookForm.date) {
+      setAvailableSlots([]);
+      return;
+    }
+    setLoading(true);
+    console.log('Fetching slots for doctor:', bookForm.doctor, 'date:', bookForm.date);
+    api.get(`/appointments/slots/${bookForm.doctor}/${bookForm.date}`)
+      .then(res => {
+        const slots = res.data?.slots || [];
+        console.log('Slots received:', slots);
+        setAvailableSlots(slots);
+      })
+      .catch(err => {
+        console.error('Error fetching slots:', err);
+        setAvailableSlots([]);
+      })
+      .finally(() => setLoading(false));
+  }, [bookForm.doctor, bookForm.date]);
 
   // Fetch initial dynamic data from backend
   useEffect(() => {
     if (!user) return;
     
     api.get('/users/doctors').then(res => {
-      const docsWithSlots = res.data.map(d => ({
-        ...d,
-        available: ['10:00 AM', '1:00 PM', '3:00 PM', '5:00 PM']
-      }));
-      setAvailableDoctors(docsWithSlots);
+      setAvailableDoctors(res.data);
     }).catch(console.error);
 
-    api.get('/appointments').then(res => {
-      const mapped = res.data.map(a => ({
-        id: a._id,
-        doctor: a.doctor?.name || 'Unknown Doctor',
-        specialty: a.doctor?.specialization || '',
-        date: new Date(a.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-        time: a.time,
-        type: a.type,
-        status: a.status
-      }));
-      setBookedAppointments(mapped);
+    api.get('/appointments/my').then(res => {
+      setBookedAppointments(res.data);
     }).catch(console.error);
 
     api.get('/records').then(res => {
@@ -299,41 +309,33 @@ export default function PatientDashboard() {
   }, [user]);
 
   const handleBookAppointment = async () => {
-    if (!bookForm.doctor || !bookForm.date || !bookForm.time) return;
-    
-    const doctorInfo = availableDoctors.find(d => d._id === bookForm.doctor);
+    if (!bookForm.doctor || !bookForm.date || !bookForm.timeSlot) return;
     
     try {
-      const { data } = await api.post('/appointments', {
-        doctor: bookForm.doctor,
-        date: new Date(bookForm.date),
-        time: bookForm.time,
-        type: bookForm.type,
+      const { data } = await api.post('/appointments/book', {
+        doctorId: bookForm.doctor,
+        date: bookForm.date,
+        timeSlot: bookForm.timeSlot,
         reason: bookForm.reason
       });
 
-      const newAppt = {
-        id: data._id,
-        doctor: doctorInfo?.name || 'Doctor',
-        specialty: doctorInfo?.specialization || '',
-        date: new Date(data.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-        time: data.time,
-        type: data.type,
-        status: data.status
-      };
-      
-      setBookedAppointments([newAppt, ...bookedAppointments]);
+      setBookedAppointments(prev => [data, ...prev]);
       setBookSuccess(true);
-      setTimeout(() => { setBookSuccess(false); setShowBooking(false); setBookForm({ doctor: '', specialty: '', date: '', time: '', type: 'video', reason: '' }); }, 1800);
+      setTimeout(() => {
+        setBookSuccess(false);
+        setShowBooking(false);
+        setBookForm({ doctor: '', date: '', timeSlot: '', reason: '' });
+        setAvailableSlots([]);
+      }, 1800);
     } catch (error) {
-      console.error('Booking failed', error);
+      alert(error.response?.data?.message || 'Booking failed');
     }
   };
 
   const cancelAppointment = async (id) => {
     try {
-      await api.delete(`/appointments/${id}`);
-      setBookedAppointments(bookedAppointments.filter(a => a.id !== id));
+      const { data } = await api.put(`/appointments/${id}/cancel`);
+      setBookedAppointments(prev => prev.map(a => a._id === id ? data : a));
     } catch (error) {
       console.error('Cancel failed', error);
     }
@@ -766,42 +768,46 @@ export default function PatientDashboard() {
           </WidgetCard>
         </div>
 
-        {/* ── Row 4: Vitals Chart + Appointments ── */}
+        {/* ── Row 4: Appointments ── */}
         <div id="appointments" style={{position:"absolute",marginTop:-80}} />
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 24 }}>
 
           <WidgetCard title="Appointments" icon={Calendar} color="#8b5cf6" action={{ label: 'Book New', icon: Plus, fn: () => setShowBooking(true) }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 350, overflowY: 'auto' }}>
               {bookedAppointments.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '30px 20px' }}>
                   <Calendar size={28} style={{ color: 'rgba(240,244,255,0.2)', marginBottom: 10 }} />
                   <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.35)' }}>No appointments booked</p>
                   <button onClick={() => setShowBooking(true)} style={{ marginTop: 10, padding: '8px 18px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, color: '#8b5cf6', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Book your first appointment</button>
                 </div>
-              ) : bookedAppointments.map((appt) => (
-                <motion.div key={appt.id} whileHover={{ x: 3 }} style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700 }}>{appt.doctor}</p>
-                        <span style={{ fontSize: 11, padding: '1px 7px', background: appt.type === 'video' ? 'rgba(0,212,255,0.15)' : appt.type === 'call' ? 'rgba(0,255,136,0.15)' : 'rgba(139,92,246,0.15)', color: appt.type === 'video' ? '#00d4ff' : appt.type === 'call' ? '#00ff88' : '#8b5cf6', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}>
-                          {appt.type === 'video' ? <Video size={10} /> : appt.type === 'call' ? <Phone size={10} /> : <MapPin size={10} />}
-                          {appt.type}
-                        </span>
+              ) : bookedAppointments.map((appt) => {
+                const statusColor = appt.status === 'booked' ? '#00ff88' : appt.status === 'cancelled' ? '#ff4444' : '#00d4ff';
+                const statusBg = appt.status === 'booked' ? 'rgba(0,255,136,0.12)' : appt.status === 'cancelled' ? 'rgba(255,68,68,0.12)' : 'rgba(0,212,255,0.12)';
+                return (
+                  <div key={appt._id} style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 700 }}>{appt.doctorId?.name || 'Doctor'}</p>
+                        <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)', marginTop: 2 }}>{appt.doctorId?.specialization || ''}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                          <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Clock size={10} />
+                            {new Date(appt.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                          <span style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 600 }}>{appt.timeSlot}</span>
+                        </div>
+                        {appt.reason && <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)', marginTop: 4 }}>Reason: {appt.reason}</p>}
                       </div>
-                      <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)' }}>{appt.specialty}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                        <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={10} />{appt.date}</span>
-                        <span style={{ fontSize: 11, color: '#8b5cf6', fontWeight: 600 }}>{appt.time}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                        <span style={{ fontSize: 11, padding: '2px 10px', background: statusBg, color: statusColor, borderRadius: 20, fontWeight: 700 }}>{appt.status}</span>
+                        {appt.status === 'booked' && (
+                          <button onClick={() => cancelAppointment(appt._id)} style={{ fontSize: 11, color: 'rgba(255,68,68,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>Cancel</button>
+                        )}
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                      <span className="badge badge-green">confirmed</span>
-                      <button onClick={() => cancelAppointment(appt.id)} style={{ fontSize: 11, color: 'rgba(255,68,68,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>Cancel</button>
                     </div>
                   </div>
-                </motion.div>
-              ))}
+                );
+              })}
             </div>
           </WidgetCard>
 
@@ -825,7 +831,7 @@ export default function PatientDashboard() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                         <div>
                           <h3 style={{ fontSize: 20, fontWeight: 800 }}>Book Appointment</h3>
-                          <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.4)', marginTop: 3 }}>Choose a doctor, date and time</p>
+                          <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.4)', marginTop: 3 }}>Choose a doctor, date and time slot</p>
                         </div>
                         <button onClick={() => setShowBooking(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(240,244,255,0.4)', fontSize: 20 }}>✕</button>
                       </div>
@@ -835,7 +841,7 @@ export default function PatientDashboard() {
                         <div>
                           <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DOCTOR</label>
                           <select className="input-glass" value={bookForm.doctor}
-                            onChange={e => { const doc = availableDoctors.find(d => d._id === e.target.value); setBookForm(f => ({ ...f, doctor: e.target.value, specialty: doc?.specialization || '', time: '' })); }}
+                            onChange={e => setBookForm(f => ({ ...f, doctor: e.target.value, timeSlot: '' }))}
                             style={{ background: 'var(--select-bg)' }}>
                             <option value="">Choose a doctor...</option>
                             {availableDoctors.map(d => (
@@ -850,37 +856,46 @@ export default function PatientDashboard() {
                           <input type="date" className="input-glass"
                             min={new Date().toISOString().split('T')[0]}
                             value={bookForm.date}
-                            onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))}
+                            onChange={e => setBookForm(f => ({ ...f, date: e.target.value, timeSlot: '' }))}
                             style={{ background: 'var(--select-bg)', colorScheme: 'dark' }}
                           />
                         </div>
 
-                        {/* Time */}
-                        {bookForm.doctor && (
-                          <div>
-                            <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>AVAILABLE SLOTS</label>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                              {availableDoctors.find(d => d._id === bookForm.doctor)?.available?.map(slot => (
-                                <button key={slot} onClick={() => setBookForm(f => ({ ...f, time: slot }))}
-                                  style={{ padding: '8px 14px', background: bookForm.time === slot ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.04)', border: `1px solid ${bookForm.time === slot ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, color: bookForm.time === slot ? '#8b5cf6' : 'rgba(240,244,255,0.6)', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: bookForm.time === slot ? 700 : 400, transition: 'all 0.15s' }}>
-                                  {slot}
+                        {/* Time Slot Grid */}
+                        <div>
+                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>TIME SLOTS</label>
+                          {!bookForm.doctor || !bookForm.date ? (
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Select doctor and date</p>
+                          ) : loading ? (
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>Loading slots...</p>
+                          ) : availableSlots.length === 0 ? (
+                            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.4)', padding: '10px 0' }}>No slots available</p>
+                          ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                              {availableSlots.map(slot => (
+                                <button
+                                  key={slot.time}
+                                  disabled={!slot.available}
+                                  onClick={() => setBookForm(f => ({ ...f, timeSlot: slot.time }))}
+                                  style={{
+                                    padding: '10px 8px',
+                                    background: !slot.available ? 'rgba(255,68,68,0.08)' : bookForm.timeSlot === slot.time ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.04)',
+                                    border: `1px solid ${!slot.available ? 'rgba(255,68,68,0.2)' : bookForm.timeSlot === slot.time ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                                    borderRadius: 8,
+                                    color: !slot.available ? 'rgba(255,68,68,0.4)' : bookForm.timeSlot === slot.time ? '#8b5cf6' : 'rgba(240,244,255,0.6)',
+                                    fontSize: 13,
+                                    cursor: !slot.available ? 'not-allowed' : 'pointer',
+                                    fontFamily: 'Outfit, sans-serif',
+                                    fontWeight: bookForm.timeSlot === slot.time ? 700 : 400,
+                                    textDecoration: !slot.available ? 'line-through' : 'none',
+                                    opacity: !slot.available ? 0.5 : 1
+                                  }}
+                                >
+                                  {slot.time}
                                 </button>
                               ))}
                             </div>
-                          </div>
-                        )}
-
-                        {/* Type */}
-                        <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>APPOINTMENT TYPE</label>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            {[{ id: 'video', label: '📹 Video Call' }, { id: 'call', label: '📞 Voice Call' }, { id: 'in-person', label: '🏥 In-Person' }].map(t => (
-                              <button key={t.id} onClick={() => setBookForm(f => ({ ...f, type: t.id }))}
-                                style={{ flex: 1, padding: '10px 8px', background: bookForm.type === t.id ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${bookForm.type === t.id ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, color: bookForm.type === t.id ? '#8b5cf6' : 'rgba(240,244,255,0.6)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: bookForm.type === t.id ? 700 : 400, transition: 'all 0.15s' }}>
-                                {t.label}
-                              </button>
-                            ))}
-                          </div>
+                          )}
                         </div>
 
                         {/* Reason */}
@@ -894,8 +909,8 @@ export default function PatientDashboard() {
 
                         <button
                           onClick={handleBookAppointment}
-                          disabled={!bookForm.doctor || !bookForm.date || !bookForm.time}
-                          style={{ padding: '14px', background: (!bookForm.doctor || !bookForm.date || !bookForm.time) ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg,#8b5cf6,#ec4899)', border: 'none', borderRadius: 12, color: (!bookForm.doctor || !bookForm.date || !bookForm.time) ? 'rgba(240,244,255,0.3)' : '#fff', fontWeight: 800, fontSize: 16, cursor: (!bookForm.doctor || !bookForm.date || !bookForm.time) ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                          disabled={!bookForm.doctor || !bookForm.date || !bookForm.timeSlot}
+                          style={{ padding: '14px', background: (!bookForm.doctor || !bookForm.date || !bookForm.timeSlot) ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg,#8b5cf6,#ec4899)', border: 'none', borderRadius: 12, color: (!bookForm.doctor || !bookForm.date || !bookForm.timeSlot) ? 'rgba(240,244,255,0.3)' : '#fff', fontWeight: 800, fontSize: 16, cursor: (!bookForm.doctor || !bookForm.date || !bookForm.timeSlot) ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                           <Calendar size={17} /> Confirm Booking
                         </button>
                       </div>

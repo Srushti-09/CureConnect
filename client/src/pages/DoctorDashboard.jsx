@@ -10,16 +10,11 @@ import {
   Plus, Search, ChevronRight, Clock, FileText,
   TrendingUp, Stethoscope, Activity, Pill, Edit3,
   Send, Zap, Star, Key, CheckCircle2, AlertCircle,
-  Eye, X, Trash2, User, ChevronDown, ActivitySquare
+  Eye, X, Trash2, User, ChevronDown, ActivitySquare, CheckCircle, AlertTriangle
 } from 'lucide-react';
 
 
-const appointmentsToday = [
-  { time: '9:00 AM', patient: 'Aisha Sharma', type: 'Follow-up', duration: 30, status: 'completed' },
-  { time: '10:30 AM', patient: 'Rajan Mehta', type: 'Consultation', duration: 45, status: 'completed' },
-  { time: '2:00 PM', patient: 'Priya Nair', type: 'Review', duration: 20, status: 'upcoming' },
-  { time: '3:30 PM', patient: 'New Patient', type: 'Initial Visit', duration: 60, status: 'upcoming' },
-];
+// Static mock removed — appointments are fetched from the API
 
 // ─── WidgetCard ────────────────────────────────────────────────────────────
 const WidgetCard = ({ children, title, icon: Icon, color = '#8b5cf6', action, style = {} }) => (
@@ -201,6 +196,9 @@ export default function DoctorDashboard() {
   // Smart Triage Matrix Rules
   const [triageRules, setTriageRules] = useState([]);
 
+  // Appointments state
+  const [appointments, setAppointments] = useState([]);
+
   // Fetch cascade alerts on mount
   useEffect(() => {
     const fetchCascades = async () => {
@@ -223,6 +221,48 @@ export default function DoctorDashboard() {
     };
     fetchRules();
   }, []);
+
+  // Fetch appointments from backend
+  useEffect(() => {
+    if (!user) return;
+    api.get('/appointments/my')
+      .then(res => setAppointments(res.data))
+      .catch(console.error);
+  }, [user]);
+
+  // Derive today's and upcoming appointments
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const todaysAppointments = appointments.filter(a => {
+    const d = new Date(a.date);
+    return d >= today && d <= todayEnd && a.status !== 'cancelled';
+  });
+
+  const upcomingAppointments = appointments.filter(a => {
+    const d = new Date(a.date);
+    return d > todayEnd && a.status !== 'cancelled';
+  });
+
+  const handleCompleteAppointment = async (id) => {
+    try {
+      const { data } = await api.put(`/appointments/${id}/complete`);
+      setAppointments(prev => prev.map(a => a._id === id ? data : a));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to complete');
+    }
+  };
+
+  const handleCancelAppointment = async (id) => {
+    try {
+      const { data } = await api.put(`/appointments/${id}/cancel`);
+      setAppointments(prev => prev.map(a => a._id === id ? data : a));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to cancel');
+    }
+  };
 
   // Load my patients from localStorage
   useEffect(() => {
@@ -298,8 +338,8 @@ export default function DoctorDashboard() {
 
   const stats = [
     { label: 'My Patients', value: String(myPatients.length), icon: Users, color: '#8b5cf6', delta: 'via access codes' },
-    { label: "Today's Appointments", value: '4', icon: Calendar, color: '#00d4ff', delta: '2 remaining' },
-    { label: 'Prescriptions Sent', value: '12', icon: Pill, color: '#00ff88', delta: 'this month' },
+    { label: "Today's Appointments", value: String(todaysAppointments.length), icon: Calendar, color: '#00d4ff', delta: `${todaysAppointments.filter(a => a.status === 'booked').length} remaining` },
+    { label: 'Upcoming', value: String(upcomingAppointments.length), icon: Clock, color: '#00ff88', delta: 'scheduled' },
     { label: 'Avg. Rating', value: '4.9', icon: Star, color: '#f59e0b', delta: '★ from patients' },
   ];
 
@@ -519,25 +559,94 @@ export default function DoctorDashboard() {
 
           {/* ── Row 2: Schedule + Analytics ── */}
           <div id="analytics" style={{ position: "absolute", marginTop: -80 }} />
-          {/* Placeholder for Records/Prescriptions which are part of the Patients list or other cards */}
           <div id="prescriptions" style={{ position: "absolute", marginTop: -80 }} />
           <div id="records" style={{ position: "absolute", marginTop: -80 }} />
           <div id="appointments" style={{ position: "absolute", marginTop: -80 }} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 24 }}>
-            <WidgetCard title="Today's Schedule" icon={Calendar} color="#00d4ff">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {appointmentsToday.map((appt, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px', background: appt.status === 'upcoming' ? 'rgba(0,212,255,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${appt.status === 'upcoming' ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)'}`, borderRadius: 10 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, background: appt.status === 'completed' ? '#00ff88' : '#00d4ff', boxShadow: appt.status === 'upcoming' ? '0 0 8px rgba(0,212,255,0.6)' : 'none' }} />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 13, fontWeight: 600 }}>{appt.patient}</p>
-                      <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.4)' }}>{appt.type} · {appt.duration}min</p>
-                    </div>
-                    <p style={{ fontSize: 12, fontFamily: 'JetBrains Mono, monospace', color: appt.status === 'upcoming' ? '#00d4ff' : 'rgba(240,244,255,0.4)' }}>{appt.time}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+
+            {/* Today's Appointments */}
+            <WidgetCard title="Today's Appointments" icon={Calendar} color="#00d4ff">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 350, overflowY: 'auto' }}>
+                {todaysAppointments.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                    <Calendar size={28} style={{ color: 'rgba(240,244,255,0.2)', marginBottom: 10 }} />
+                    <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.35)' }}>No appointments today</p>
                   </div>
-                ))}
+                ) : todaysAppointments.map(appt => {
+                  const statusColor = appt.status === 'booked' ? '#00ff88' : appt.status === 'completed' ? '#00d4ff' : '#ff4444';
+                  const statusBg = appt.status === 'booked' ? 'rgba(0,255,136,0.12)' : appt.status === 'completed' ? 'rgba(0,212,255,0.12)' : 'rgba(255,68,68,0.12)';
+                  return (
+                    <div key={appt._id} style={{ padding: '12px 14px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 14, fontWeight: 700 }}>{appt.patientId?.name || 'Patient'}</p>
+                          <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)', marginTop: 2 }}>{appt.patientId?.email || ''}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                            <span style={{ fontSize: 12, color: '#00d4ff', fontWeight: 600 }}>{appt.timeSlot}</span>
+                          </div>
+                          {appt.reason && <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)', marginTop: 4 }}>Reason: {appt.reason}</p>}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                          <span style={{ fontSize: 11, padding: '2px 10px', background: statusBg, color: statusColor, borderRadius: 20, fontWeight: 700 }}>{appt.status}</span>
+                          {appt.status === 'booked' && (
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button onClick={() => handleCompleteAppointment(appt._id)} style={{ fontSize: 11, color: '#00d4ff', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <CheckCircle size={11} /> Complete
+                              </button>
+                              <button onClick={() => handleCancelAppointment(appt._id)} style={{ fontSize: 11, color: 'rgba(255,68,68,0.7)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>Cancel</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </WidgetCard>
+
+            {/* Upcoming Appointments */}
+            <WidgetCard title="Upcoming Appointments" icon={Clock} color="#8b5cf6">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 350, overflowY: 'auto' }}>
+                {upcomingAppointments.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                    <Clock size={28} style={{ color: 'rgba(240,244,255,0.2)', marginBottom: 10 }} />
+                    <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.35)' }}>No upcoming appointments</p>
+                  </div>
+                ) : upcomingAppointments.map(appt => {
+                  const statusColor = appt.status === 'booked' ? '#00ff88' : appt.status === 'completed' ? '#00d4ff' : '#ff4444';
+                  const statusBg = appt.status === 'booked' ? 'rgba(0,255,136,0.12)' : appt.status === 'completed' ? 'rgba(0,212,255,0.12)' : 'rgba(255,68,68,0.12)';
+                  return (
+                    <div key={appt._id} style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.05)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 14, fontWeight: 700 }}>{appt.patientId?.name || 'Patient'}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                            <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                              <Calendar size={10} />
+                              {new Date(appt.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                            <span style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 600 }}>{appt.timeSlot}</span>
+                          </div>
+                          {appt.reason && <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)', marginTop: 4 }}>Reason: {appt.reason}</p>}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                          <span style={{ fontSize: 11, padding: '2px 10px', background: statusBg, color: statusColor, borderRadius: 20, fontWeight: 700 }}>{appt.status}</span>
+                          {appt.status === 'booked' && (
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button onClick={() => handleCompleteAppointment(appt._id)} style={{ fontSize: 11, color: '#00d4ff', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <CheckCircle size={11} /> Complete
+                              </button>
+                              <button onClick={() => handleCancelAppointment(appt._id)} style={{ fontSize: 11, color: 'rgba(255,68,68,0.7)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>Cancel</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </WidgetCard>
+
           </div>
 
           {/* ── Row 3: AI Suggestions ── */}
