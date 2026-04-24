@@ -1,0 +1,50 @@
+.helix {
+  position: relative;
+  perspective: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.strand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: rotate3d 4s ease-in-out infinite;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: wave 2s ease-in-out infinite;
+}
+
+.dot, .dot2 {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
+.bridge {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(0,212,255,0.4), rgba(0,255,136,0.4));
+  border-radius: 1px;
+  min-width: 40px;
+}
+
+.dot { box-shadow: 0 0 8px rgba(0,212,255,0.6); }
+.dot2 { box-shadow: 0 0 8px rgba(139,92,246,0.6); }
+
+@keyframes rotate3d {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
