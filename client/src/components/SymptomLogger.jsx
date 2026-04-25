@@ -5,6 +5,7 @@ import {
   Activity, Plus, AlertTriangle, TrendingUp,
   Check, ChevronDown, ChevronUp, Trash2
 } from 'lucide-react';
+import { DailyInsights, WeeklyAnalysis } from './SymptomInsights';
 
 // ── Common symptom presets for quick selection ──
 const SYMPTOM_PRESETS = [
@@ -34,6 +35,8 @@ export default function SymptomLogger() {
   const [showHistory, setShowHistory] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [customSymptom, setCustomSymptom] = useState('');
+  const [showInsights, setShowInsights] = useState(false);
+  const [lastLogged, setLastLogged] = useState({ symptoms: [], severity: 1 });
 
   // Fetch recent symptom history
   useEffect(() => {
@@ -74,7 +77,9 @@ export default function SymptomLogger() {
         severity,
         notes,
       });
+      setLastLogged({ symptoms: [...selectedSymptoms], severity });
       setSubmitted(true);
+      setShowInsights(true);
       setSelectedSymptoms([]);
       setSeverity(1);
       setNotes('');
@@ -415,6 +420,17 @@ export default function SymptomLogger() {
           </AnimatePresence>
         </div>
       )}
+
+      {/* ── Daily Insights (shown after logging) ── */}
+      <DailyInsights
+        symptoms={lastLogged.symptoms}
+        severity={lastLogged.severity}
+        visible={showInsights}
+        onClose={() => setShowInsights(false)}
+      />
+
+      {/* ── Weekly Analysis ── */}
+      <WeeklyAnalysis />
     </div>
   );
 }
