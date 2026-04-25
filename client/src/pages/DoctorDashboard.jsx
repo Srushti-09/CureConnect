@@ -12,6 +12,7 @@ import {
   Send, Zap, Star, Key, CheckCircle2, AlertCircle,
   Eye, X, Trash2, User, ChevronDown, ActivitySquare, CheckCircle, AlertTriangle
 } from 'lucide-react';
+import InteractionAlert from '../components/InteractionAlert';
 
 
 // Static mock removed — appointments are fetched from the API
@@ -44,35 +45,56 @@ const WidgetCard = ({ children, title, icon: Icon, color = '#8b5cf6', action, st
 
 // ─── Prescription Pad ────────────────────────────────────────────────────────
 function PrescriptionPad({ patient, patientId, doctorName, onClose }) {
-  const [meds, setMeds] = useState([{ name: '', dose: '', frequency: '', duration: '' }]);
+  const [meds, setMeds] = useState([{ name: '', dosage: '', frequency: '', duration: '' }]);
   const [diagnosis, setDiagnosis] = useState('');
   const [notes, setNotes] = useState('');
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [interactions, setInteractions] = useState([]);
+  const [showInteractions, setShowInteractions] = useState(false);
 
-  const addMed = () => setMeds(m => [...m, { name: '', dose: '', frequency: '', duration: '' }]);
+  const addMed = () => setMeds(m => [...m, { name: '', dosage: '', frequency: '', duration: '' }]);
 
-  const handleSend = () => {
-    // Save prescription to patient's notification store
-    if (patient) {
-      // Find patient ID from my patients list (passed via patientId prop)
-      const targetPatientId = patientId || null;
-      if (targetPatientId) {
-        const key = `cc_prescriptions_${targetPatientId}`;
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const newRx = {
-          id: Date.now(),
-          doctorName: doctorName || 'Your Doctor',
-          diagnosis,
-          medications: meds.filter(m => m.name),
-          notes,
-          sentAt: new Date().toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-          read: false,
-        };
-        localStorage.setItem(key, JSON.stringify([...existing, newRx]));
+  const checkAndSend = async (force = false) => {
+    if (!patientId || meds.filter(m => m.name).length === 0) return;
+    setLoading(true);
+
+    try {
+      if (!force) {
+        const res = await api.post('/prescriptions/check-interactions', {
+          medicines: meds.filter(m => m.name).map(m => m.name)
+        });
+
+        if (res.data.count > 0) {
+          setInteractions(res.data.interactions);
+          setShowInteractions(true);
+          setLoading(false);
+          return;
+        }
       }
+
+      await api.post('/prescriptions', {
+        patient: patientId,
+        medications: meds.filter(m => m.name),
+        diagnosis,
+        notes,
+        forceSave: force
+      });
+
+      setSent(true);
+      setTimeout(() => onClose(), 1500);
+    } catch (err) {
+      console.error('Failed to save prescription', err);
+      // If server returned 409 (Conflict/Severe interaction)
+      if (err.response?.status === 409) {
+        setInteractions(err.response.data.interactions);
+        setShowInteractions(true);
+      } else {
+        alert(err.response?.data?.message || 'Error saving prescription');
+      }
+    } finally {
+      setLoading(false);
     }
-    setSent(true);
-    setTimeout(() => onClose(), 1500);
   };
 
   if (sent) return (
@@ -83,34 +105,49 @@ function PrescriptionPad({ patient, patientId, doctorName, onClose }) {
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 8 }}>
-        <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace' }}>Patient: {patient}</p>
-      </div>
-      <textarea className="input-glass" placeholder="Primary diagnosis..." value={diagnosis} onChange={e => setDiagnosis(e.target.value)} style={{ minHeight: 60, resize: 'vertical', fontFamily: 'Outfit, sans-serif' }} />
-      {meds.map((med, i) => (
-        <div key={i} style={{ padding: 12, background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input className="input-glass" placeholder="Medication name" value={med.name} onChange={e => { const n = [...meds]; n[i].name = e.target.value; setMeds(n); }} style={{ flex: 2 }} />
-            <input className="input-glass" placeholder="Dosage" value={med.dose} onChange={e => { const n = [...meds]; n[i].dose = e.target.value; setMeds(n); }} style={{ flex: 1 }} />
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input className="input-glass" placeholder="Frequency (e.g. Twice daily)" value={med.frequency} onChange={e => { const n = [...meds]; n[i].frequency = e.target.value; setMeds(n); }} style={{ flex: 1 }} />
-            <input className="input-glass" placeholder="Duration" value={med.duration} onChange={e => { const n = [...meds]; n[i].duration = e.target.value; setMeds(n); }} style={{ flex: 1 }} />
-          </div>
+    <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div style={{ padding: '8px 12px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 8 }}>
+          <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace' }}>Patient ID: {patientId}</p>
         </div>
-      ))}
-      <button onClick={addMed} className="btn-ghost" style={{ width: '100%', justifyContent: 'center', padding: '9px', borderStyle: 'dashed' }}>
-        <Plus size={14} /> Add Medication
-      </button>
-      <textarea className="input-glass" placeholder="Additional notes..." value={notes} onChange={e => setNotes(e.target.value)} style={{ minHeight: 60, resize: 'vertical', fontFamily: 'Outfit, sans-serif' }} />
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onClose} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
-        <button onClick={handleSend} style={{ flex: 2, padding: '12px', background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', border: 'none', borderRadius: 12, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <Send size={16} /> Send Prescription
+        <textarea className="input-glass" placeholder="Primary diagnosis..." value={diagnosis} onChange={e => setDiagnosis(e.target.value)} style={{ minHeight: 60, resize: 'vertical', fontFamily: 'Outfit, sans-serif' }} />
+        {meds.map((med, i) => (
+          <div key={i} style={{ padding: 12, background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="input-glass" placeholder="Medication name" value={med.name} onChange={e => { const n = [...meds]; n[i].name = e.target.value; setMeds(n); }} style={{ flex: 2 }} />
+              <input className="input-glass" placeholder="Dosage" value={med.dosage} onChange={e => { const n = [...meds]; n[i].dosage = e.target.value; setMeds(n); }} style={{ flex: 1 }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="input-glass" placeholder="Frequency (e.g. Twice daily)" value={med.frequency} onChange={e => { const n = [...meds]; n[i].frequency = e.target.value; setMeds(n); }} style={{ flex: 1 }} />
+              <input className="input-glass" placeholder="Duration" value={med.duration} onChange={e => { const n = [...meds]; n[i].duration = e.target.value; setMeds(n); }} style={{ flex: 1 }} />
+            </div>
+          </div>
+        ))}
+        <button onClick={addMed} className="btn-ghost" style={{ width: '100%', justifyContent: 'center', padding: '9px', borderStyle: 'dashed' }}>
+          <Plus size={14} /> Add Medication
         </button>
+        <textarea className="input-glass" placeholder="Additional notes..." value={notes} onChange={e => setNotes(e.target.value)} style={{ minHeight: 60, resize: 'vertical', fontFamily: 'Outfit, sans-serif' }} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onClose} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
+          <button 
+            disabled={loading}
+            onClick={() => checkAndSend(false)} 
+            style={{ flex: 2, padding: '12px', background: 'linear-gradient(135deg,#8b5cf6,#ec4899)', border: 'none', borderRadius: 12, color: '#fff', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {loading ? 'Processing...' : <><Send size={16} /> Send Prescription</>}
+          </button>
+        </div>
       </div>
-    </div>
+
+      <AnimatePresence>
+        {showInteractions && (
+          <InteractionAlert 
+            interactions={interactions} 
+            onClose={() => setShowInteractions(false)} 
+            onConfirm={() => checkAndSend(true)} 
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 

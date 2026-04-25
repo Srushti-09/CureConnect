@@ -5,8 +5,18 @@ const AccessCode = require('./models/AccessCode');
 
 const seedDB = async () => {
   try {
+    const MONGO_URI = process.env.MONGO_URI;
+    
+    if (!MONGO_URI) {
+      throw new Error('MONGO_URI environment variable is not defined. Check your .env file in server/ folder.');
+    }
+    
     console.log('⏳ Connecting to MongoDB...');
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(MONGO_URI, {
+      maxPoolSize: 10,
+      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 5000,
+    });
     
     console.log('✅ Connected. Clearing existing data...');
     // Wipe all users and codes before seeding

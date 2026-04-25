@@ -7,6 +7,7 @@ import PersonaSelection from './pages/PersonaSelection';
 import AuthPage from './pages/AuthPage';
 import PatientDashboard from './pages/PatientDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
+import AdminAnalytics from './pages/AdminAnalytics';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user } = useAuth();
@@ -37,6 +38,9 @@ const AppRoutes = () => {
         } />
         <Route path="/doctor" element={
           <ProtectedRoute role="doctor"><DoctorDashboard /></ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute role="doctor"><AdminAnalytics /></ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

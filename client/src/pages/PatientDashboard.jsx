@@ -14,6 +14,7 @@ import {
   Stethoscope, AlertTriangle, X, Eye,
   ChevronDown, CheckCircle2, Trash2, Video, MapPin, Phone, ArrowUpDown, User
 } from 'lucide-react';
+import AdherenceTracker from '../components/AdherenceTracker';
 
 
 // Dynamic Doctors list is fetched from API.
@@ -744,27 +745,9 @@ export default function PatientDashboard() {
             )}
           </WidgetCard>
 
-          {/* Medications */}
-          <WidgetCard title="Medications" icon={Pill} color="#8b5cf6">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {medications.map((med, i) => (
-                <motion.div key={i} whileHover={{ x: 2 }} style={{ padding: '13px', background: `${med.color}08`, border: `1px solid ${med.color}20`, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: med.color, boxShadow: `0 0 8px ${med.color}`, flexShrink: 0 }} />
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 14, fontWeight: 700 }}>{med.name} <span style={{ fontSize: 12, fontWeight: 400, color: 'rgba(240,244,255,0.5)' }}>{med.dose}</span></p>
-                    <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.4)', marginTop: 2 }}>{med.freq} · {med.time}</p>
-                  </div>
-                  <button onClick={() => setMedStatus(s => ({ ...s, [i]: !s[i] }))} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    {medStatus[i]
-                      ? <CheckCircle size={20} color="#00ff88" />
-                      : <div style={{ width: 22, height: 22, borderRadius: 7, border: `2px solid ${med.color}`, transition: '0.2s' }} />}
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-            <div style={{ marginTop: 14, padding: '10px 14px', background: 'rgba(0,255,136,0.06)', border: '1px solid rgba(0,255,136,0.15)', borderRadius: 10 }}>
-              <p style={{ fontSize: 12, color: 'rgba(0,255,136,0.8)' }}>✅ {Object.values(medStatus).filter(Boolean).length}/{medications.length} medications taken today</p>
-            </div>
+          {/* Medications — Integrated Adherence Tracker */}
+          <WidgetCard title="Medication Adherence" icon={Pill} color="#8b5cf6">
+            <AdherenceTracker patientId={user?._id} />
           </WidgetCard>
         </div>
 

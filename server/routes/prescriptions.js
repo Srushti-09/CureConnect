@@ -2,6 +2,7 @@ const express = require('express');
 const Prescription = require('../models/Prescription');
 const { protect, doctorOnly } = require('../middleware/auth');
 const router = express.Router();
+const { checkInteractions, savePrescription } = require('../controllers/prescriptionInteractionController');
 
 router.get('/', protect, async (req, res) => {
   try {
@@ -16,14 +17,10 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-router.post('/', protect, doctorOnly, async (req, res) => {
-  try {
-    const prescription = await Prescription.create({ ...req.body, doctor: req.user._id });
-    res.status(201).json(prescription);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.post('/', protect, doctorOnly, savePrescription);
+router.post('/save', protect, doctorOnly, savePrescription); // Alias for consistency with request
+
+router.post('/check-interactions', protect, doctorOnly, checkInteractions);
 
 router.put('/:id', protect, doctorOnly, async (req, res) => {
   try {
