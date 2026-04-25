@@ -30,6 +30,35 @@ export default function SmartTriage() {
     }
   };
 
+  // Built-in client-side triage rules (used when backend API is unavailable)
+  const LOCAL_RULES = [
+    { keyword: 'chest pain',     priority: 'Red',    score: 10, specialist: 'Cardiologist',       urgency: 'Immediate (ER)' },
+    { keyword: 'breathlessness', priority: 'Red',    score: 9,  specialist: 'Pulmonologist',      urgency: 'Immediate (ER)' },
+    { keyword: 'numbness',       priority: 'Red',    score: 8,  specialist: 'Neurologist',        urgency: 'Within 1 hour' },
+    { keyword: 'fever',          priority: 'Yellow', score: 5,  specialist: 'General Physician',  urgency: 'Within 24 hours' },
+    { keyword: 'nausea',         priority: 'Yellow', score: 4,  specialist: 'Gastroenterologist', urgency: 'Within 24 hours' },
+    { keyword: 'dizziness',      priority: 'Yellow', score: 5,  specialist: 'Neurologist',        urgency: 'Within 12 hours' },
+    { keyword: 'cough',          priority: 'Green',  score: 3,  specialist: 'General Physician',  urgency: 'Within 3-5 days' },
+    { keyword: 'headache',       priority: 'Yellow', score: 4,  specialist: 'Neurologist',        urgency: 'Within 24 hours' },
+  ];
+
+  const runLocalTriage = (symptoms) => {
+    let totalScore = 0;
+    let highest = null;
+    symptoms.forEach(sym => {
+      const lower = sym.toLowerCase();
+      LOCAL_RULES.forEach(rule => {
+        if (lower.includes(rule.keyword)) {
+          totalScore += rule.score;
+          if (!highest || rule.score > highest.score) highest = rule;
+        }
+      });
+    });
+    if (!highest) return { priority: 'Green', score: 0, specialistType: 'General Physician', urgency: 'Within 3-5 days' };
+    const priority = totalScore >= 10 ? 'Red' : highest.priority;
+    return { priority, score: totalScore, specialistType: highest.specialist, urgency: priority === 'Red' ? 'Immediate (ER)' : highest.urgency };
+  };
+
   const handleTriage = async () => {
     if (selectedSymptoms.length === 0) return;
     setLoading(true);
@@ -37,15 +66,18 @@ export default function SmartTriage() {
       const { data } = await api.post('/symptoms/triage', {
         symptoms: selectedSymptoms
       });
-      setTriageResult(data);
+      // Only use backend result if it actually returned a real priority
+      if (data && data.priority && data.priority !== 'Green') {
+        setTriageResult(data);
+      } else {
+        // Backend returned Green (possibly empty DB) — use local engine
+        const localResult = runLocalTriage(selectedSymptoms);
+        setTriageResult(localResult);
+      }
     } catch (err) {
-      console.error('Failed to run triage:', err);
-      // In case of error, show a robust fail-safe message
-      setTriageResult({
-        priority: 'Green',
-        specialistType: 'General Call Center',
-        urgency: 'Standard queue'
-      });
+      console.error('Backend triage failed, using local engine:', err);
+      const localResult = runLocalTriage(selectedSymptoms);
+      setTriageResult(localResult);
     } finally {
       setLoading(false);
     }
