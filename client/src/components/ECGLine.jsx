@@ -28,7 +28,6 @@ export default function ECGLine({ color = '#00d4ff', width = '100%', height = 80
     const drawECG = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Glow effect
       ctx.shadowColor = color;
       ctx.shadowBlur = 8;
 
@@ -51,16 +50,15 @@ export default function ECGLine({ color = '#00d4ff', width = '100%', height = 80
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Fade overlay left/right
       const fadeLeft = ctx.createLinearGradient(0, 0, 80, 0);
-      fadeLeft.addColorStop(0, 'rgba(3,7,18,1)');
+      fadeLeft.addColorStop(0, 'rgba(3,7,18,0.5)');
       fadeLeft.addColorStop(1, 'rgba(3,7,18,0)');
       ctx.fillStyle = fadeLeft;
       ctx.fillRect(0, 0, 80, canvas.height);
 
       const fadeRight = ctx.createLinearGradient(canvas.width - 80, 0, canvas.width, 0);
       fadeRight.addColorStop(0, 'rgba(3,7,18,0)');
-      fadeRight.addColorStop(1, 'rgba(3,7,18,1)');
+      fadeRight.addColorStop(1, 'rgba(3,7,18,0.5)');
       ctx.fillStyle = fadeRight;
       ctx.fillRect(canvas.width - 80, 0, 80, canvas.height);
 

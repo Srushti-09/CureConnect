@@ -2,12 +2,30 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const AccessCode = require('./models/AccessCode');
+<<<<<<< HEAD
 const DrugInteraction = require('./models/DrugInteraction');
 
 const seedDB = async () => {
   try {
     console.log('⏳ Connecting to MongoDB...');
     await mongoose.connect(process.env.MONGO_URI);
+=======
+
+const seedDB = async () => {
+  try {
+    const MONGO_URI = process.env.MONGO_URI;
+    
+    if (!MONGO_URI) {
+      throw new Error('MONGO_URI environment variable is not defined. Check your .env file in server/ folder.');
+    }
+    
+    console.log('⏳ Connecting to MongoDB...');
+    await mongoose.connect(MONGO_URI, {
+      maxPoolSize: 10,
+      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 5000,
+    });
+>>>>>>> 129b5ad195a6efa650cbf5a3c53bdd678fbc3181
     
     console.log('✅ Connected. Clearing existing data...');
     // Wipe all users and codes before seeding
@@ -89,6 +107,7 @@ const seedDB = async () => {
       expiresAt: expires
     });
 
+<<<<<<< HEAD
     // ─── Drug Interactions ───
     console.log('💊 Seeding drug interactions...');
     const drugInteractions = [
@@ -196,6 +215,11 @@ const seedDB = async () => {
     console.log(`👨‍⚕️ ${doctors.length} Doctors created. (e.g. dr.chen@cureconnect.com)`);
     console.log(`🫀 ${patients.length} Patients created. (e.g. james.walker@test.com)`);
     console.log(`💊 ${drugInteractions.length} Drug interactions seeded.`);
+=======
+    console.log(`✅ Database successfully seeded!`);
+    console.log(`👨‍⚕️ ${doctors.length} Doctors created. (e.g. dr.chen@cureconnect.com)`);
+    console.log(`🫀 ${patients.length} Patients created. (e.g. james.walker@test.com)`);
+>>>>>>> 129b5ad195a6efa650cbf5a3c53bdd678fbc3181
     console.log(`🔑 All accounts use password: demo_password123`);
     console.log(`⏳ TTL INDEX ALERT: A temporary AccessCode ('DEMO1234') was generated. It will self-destruct from the DB in exactly 2 minutes! Check compass quickly!`);
     

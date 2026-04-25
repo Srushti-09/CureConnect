@@ -6,6 +6,8 @@ import Navbar from '../components/Navbar';
 import ECGLine from '../components/ECGLine';
 import DailyVitalsModal from '../components/DailyVitalsModal';
 import AdherenceTracker from '../components/AdherenceTracker';
+import SymptomLogger from '../components/SymptomLogger';
+import SmartTriage from '../components/SmartTriage';
 import {
   Activity, FileText, Calendar, Pill,
   TrendingUp, Heart, Plus, Upload, Search,
@@ -18,15 +20,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// Dynamic Doctors list is fetched from API.
-
-// ─── Helper: generate 8-char access code ───────────────────────────────────
-const genCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-};
-
-// ─── Specialty suggestion based on conditions ───────────────────────────────
+// Specialty suggestion based on conditions
 const SPECIALTY_MAP = {
   'diabetes': { spec: 'Endocrinologist', emoji: '🩺', color: '#00d4ff', desc: 'For blood sugar management and hormonal disorders' },
   'hypertension': { spec: 'Cardiologist', emoji: '❤️', color: '#ff4444', desc: 'For blood pressure and heart health management' },
@@ -67,7 +61,6 @@ function getSuggestedSpecialties(records, userConditions) {
   return [...suggestions.values()];
 }
 
-// ─── AI Q&A predefined questions ────────────────────────────────────────────
 const AI_QA = [
   {
     category: 'Vitals',
@@ -82,28 +75,16 @@ const AI_QA = [
     questions: [
       { q: 'What happens if I miss a medication dose?', a: 'Take it as soon as you remember — unless it\'s almost time for the next dose. Never double up. Missing doses can reduce effectiveness. Set a daily alarm to maintain consistency.' },
       { q: 'Can I take my medications together?', a: 'Based on your current prescriptions, consult your doctor before combining medications. Some drugs interact: for example, blood thinners should not be taken with NSAIDs without guidance.' },
-      { q: 'How long do I need to take my medications?', a: 'Duration depends on your condition. Chronic conditions (diabetes, hypertension) often require lifelong management. Your doctor will advise on review dates. Never stop abruptly without consulting.' },
-    ],
-  },
-  {
-    category: 'Lifestyle',
-    questions: [
-      { q: 'What diet changes would help my condition?', a: 'For your health profile: reduce processed foods and sodium, increase leafy greens, omega-3s (fish, flaxseed), and stay hydrated. A Mediterranean diet is strong evidence-based for heart and metabolic health.' },
-      { q: 'How much exercise is recommended for me?', a: '150 minutes of moderate exercise per week (e.g., 30 min brisk walk × 5 days) is the standard recommendation. Start slow and increase gradually. Avoid strenuous exercise if BP is uncontrolled.' },
-      { q: 'How can I manage stress to improve my health?', a: 'Chronic stress elevates cortisol, affecting BP and blood sugar. Try 10 min daily deep breathing, 7–8 hours sleep, and limit caffeine. Apps like Calm or Headspace can help with guided meditation.' },
     ],
   },
   {
     category: 'When to Visit Doctor',
     questions: [
       { q: 'What symptoms should trigger an emergency visit?', a: 'Seek emergency care for: chest pain, sudden severe headache, difficulty breathing, one-sided weakness/numbness, vision loss, or blood sugar below 70 or above 300 mg/dL. Call 108 (India) or 911 immediately.' },
-      { q: 'How often should I get a health check-up?', a: 'Annual wellness check-ups are recommended. With chronic conditions, follow your doctor\'s schedule (often every 3–6 months). Regular labs (HbA1c, lipid panel, CBC) help catch issues early.' },
-      { q: 'Are my symptoms serious enough to see a doctor?', a: 'Symptoms persisting more than 3–5 days, worsening over time, or affecting daily life should prompt a visit. When in doubt, it\'s always safer to get evaluated. Your health record has been flagged for next review.' },
     ],
   },
 ];
 
-// ─── Mock vitals data ────────────────────────────────────────────────────────
 const vitalsData = [
   { day: 'Mon', bp: 118, hr: 72, o2: 98 },
   { day: 'Tue', bp: 122, hr: 75, o2: 97 },
@@ -117,16 +98,8 @@ const vitalsData = [
 const baseMedications = [
   { name: 'Metformin', dose: '500mg', freq: 'Twice daily', time: '8 AM / 8 PM', status: 'taken', color: '#00d4ff', condition: 'diabetes' },
   { name: 'Lisinopril', dose: '10mg', freq: 'Once daily', time: '9:00 AM', status: 'pending', color: '#8b5cf6', condition: 'hypertension' },
-  { name: 'Atorvastatin', dose: '20mg', freq: 'Once daily', time: '9:00 PM', status: 'pending', color: '#00ff88', condition: 'high cholesterol' },
-  { name: 'Albuterol', dose: '90mcg', freq: 'As needed', time: 'PRN', status: 'pending', color: '#f59e0b', condition: 'asthma' },
 ];
 
-const appointments = [
-  { doctor: 'Dr. Sarah Chen', specialty: 'Cardiologist', date: 'Today', time: '3:30 PM', type: 'video', status: 'confirmed' },
-  { doctor: 'Dr. Raj Kumar', specialty: 'Endocrinologist', date: 'Apr 22', time: '10:00 AM', type: 'in-person', status: 'pending' },
-];
-
-// ─── WidgetCard ────────────────────────────────────────────────────────────
 const WidgetCard = ({ children, title, icon: Icon, color = '#00d4ff', action, style = {} }) => (
   <motion.div
     initial={{ opacity: 0, y: 30 }}
@@ -158,7 +131,6 @@ const WidgetCard = ({ children, title, icon: Icon, color = '#00d4ff', action, st
   </motion.div>
 );
 
-// ─── Arc health meter ──────────────────────────────────────────────────────
 const HealthMeter = ({ score }) => {
   const c = 2 * Math.PI * 50;
   const color = score >= 80 ? '#00ff88' : score >= 60 ? '#00d4ff' : '#f59e0b';
@@ -181,7 +153,6 @@ const HealthMeter = ({ score }) => {
   );
 };
 
-// ── Document categories for filter ─────────────────────────────────────────
 const DOC_CATEGORIES = [
   { id: 'all', label: 'All' },
   { id: 'prescription', label: 'Prescriptions' },
@@ -190,189 +161,97 @@ const DOC_CATEGORIES = [
   { id: 'other', label: 'Other' },
 ];
 
-// ──────────────────────────────────────────────────────────────────────────────
+const genCode = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+};
+
 export default function PatientDashboard() {
   const { user } = useAuth();
-  
   const [availableDoctors, setAvailableDoctors] = useState([]);
-
-  // Mobile sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Document upload state (stored in localStorage)
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
-
-  // Search, filter, sort state
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortOrder, setSortOrder] = useState('newest');
-
-  // Access code state
   const [accessCode, setAccessCode] = useState('');
   const [codeCopied, setCodeCopied] = useState(false);
-
-  // AI Q&A state
   const [openCategory, setOpenCategory] = useState(null);
   const [selectedQ, setSelectedQ] = useState(null);
-
-  // SOS state
   const [sosCountdown, setSosCountdown] = useState(null);
-
-  // Daily Vitals Modal State
   const [showVitalsModal, setShowVitalsModal] = useState(false);
   const [liveVitals, setLiveVitals] = useState(null);
+  const [showBooking, setShowBooking] = useState(false);
+  const [bookedAppointments, setBookedAppointments] = useState([]);
+  const [bookForm, setBookForm] = useState({ doctor: '', specialty: '', date: '', time: '', type: 'video', reason: '' });
+  const [bookSuccess, setBookSuccess] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Check if vitals have been logged today
   useEffect(() => {
     if (user?._id) {
       const today = new Date().toLocaleDateString();
       const lastCheck = localStorage.getItem(`lastVitalsLog_${user._id}`);
-      if (lastCheck !== today) {
-        setShowVitalsModal(true);
-      }
+      if (lastCheck !== today) setShowVitalsModal(true);
     }
   }, [user]);
 
   const handleVitalsComplete = (data) => {
-    if (data && data.bp && data.hr && data.spo2) {
-      setLiveVitals(data);
-    }
-    if (user?._id) {
-      localStorage.setItem(`lastVitalsLog_${user._id}`, new Date().toLocaleDateString());
-    }
+    if (data && data.bp && data.hr && data.spo2) setLiveVitals(data);
+    if (user?._id) localStorage.setItem(`lastVitalsLog_${user._id}`, new Date().toLocaleDateString());
     setShowVitalsModal(false);
   };
 
-  // Extract user health conditions
   const userConditionsText = (user?.chronicConditions || []).join(' ').toLowerCase();
-
-  // Dynamically compute medications
-  const medications = baseMedications.filter(m => userConditionsText.includes(m.condition)).length > 0 
-    ? baseMedications.filter(m => userConditionsText.includes(m.condition) || m.condition === 'high cholesterol')
-    : [
-      { name: 'Vitamin C', dose: '500mg', freq: 'Once daily', time: '9:00 AM', status: 'pending', color: '#00d4ff' },
-      { name: 'Vitamin D3', dose: '1000 IU', freq: 'Once daily', time: '9:00 AM', status: 'taken', color: '#00ff88' }
-    ];
-
-  // Medications check state
-  const [medStatus, setMedStatus] = useState(
-    medications.reduce((acc, m, i) => ({ ...acc, [i]: m.status === 'taken' }), {})
-  );
-
-  // Dynamically compute vitals
   const vitals = [
     { icon: Heart, label: 'Heart Rate', value: liveVitals?.hr || (userConditionsText.includes('arrhythmia') ? '88' : '72'), unit: 'bpm', color: '#ff4444' },
     { icon: Activity, label: 'Blood Pressure', value: liveVitals?.bp || (userConditionsText.includes('hypertension') || userConditionsText.includes('bp') ? '142/90' : '118/76'), unit: 'mmHg', color: '#00d4ff' },
     { icon: Droplets, label: 'Blood Oxygen', value: liveVitals?.spo2 || (userConditionsText.includes('asthma') ? '94' : '98'), unit: '%', color: '#00ff88' },
     { icon: Thermometer, label: 'Temperature', value: '98.4', unit: '°F', color: '#f59e0b' },
   ];
-  if (userConditionsText.includes('diabetes')) {
-    vitals.push({ icon: Activity, label: 'Blood Sugar', value: '145', unit: 'mg/dL', color: '#8b5cf6' });
-  }
-  if (user?.height && user?.weight) {
-    const heightM = user.height / 100;
-    const bmi = (user.weight / (heightM * heightM)).toFixed(1);
-    vitals.push({ icon: User, label: 'BMI', value: bmi, unit: '', color: '#ec4899' });
-  }
 
-  // Appointment booking state
-  const [showBooking, setShowBooking] = useState(false);
-  const [bookedAppointments, setBookedAppointments] = useState([]);
-  const [bookForm, setBookForm] = useState({
-    doctor: '', specialty: '', date: '', time: '', type: 'video', reason: ''
-  });
-  const [bookSuccess, setBookSuccess] = useState(false);
+  useEffect(() => {
+    if (!bookForm.doctor || !bookForm.date) {
+      setAvailableSlots([]); return;
+    }
+    setLoadingSlots(true);
+    api.get(`/appointments/slots/${bookForm.doctor}/${bookForm.date}`)
+      .then(res => setAvailableSlots(res.data?.slots || []))
+      .catch(() => setAvailableSlots([]))
+      .finally(() => setLoadingSlots(false));
+  }, [bookForm.doctor, bookForm.date]);
 
-  // Fetch initial dynamic data from backend
   useEffect(() => {
     if (!user) return;
-    
-    api.get('/users/doctors').then(res => {
-      const docsWithSlots = res.data.map(d => ({
-        ...d,
-        available: ['10:00 AM', '1:00 PM', '3:00 PM', '5:00 PM']
-      }));
-      setAvailableDoctors(docsWithSlots);
-    }).catch(console.error);
-
-    api.get('/appointments').then(res => {
-      const mapped = res.data.map(a => ({
-        id: a._id,
-        doctor: a.doctor?.name || 'Unknown Doctor',
-        specialty: a.doctor?.specialization || '',
-        date: new Date(a.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-        time: a.time,
-        type: a.type,
-        status: a.status
-      }));
-      setBookedAppointments(mapped);
-    }).catch(console.error);
-
+    api.get('/users/doctors').then(res => setAvailableDoctors(res.data)).catch(console.error);
+    api.get('/appointments/my').then(res => setBookedAppointments(res.data)).catch(console.error);
     api.get('/records').then(res => {
-      const mappedDocs = res.data.map(d => {
-        let cat = 'other';
-        if (d.type === 'lab_report') cat = 'report';
-        else if (d.type === 'imaging') cat = 'image';
-        else if (d.type === 'prescription') cat = 'prescription';
-        return {
-          id: d._id,
-          name: d.title,
-          type: d.fileType,
-          size: 'DB stored',
-          date: new Date(d.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-          data: d.fileUrl,
-          category: cat
-        };
-      });
+      const mappedDocs = res.data.map(d => ({
+        id: d._id, name: d.title, type: d.fileType, size: 'Cloud Stored', date: new Date(d.date).toLocaleDateString(), data: d.fileUrl, category: d.type === 'lab_report' ? 'report' : d.type === 'imaging' ? 'image' : d.type === 'prescription' ? 'prescription' : 'other'
+      }));
       setDocuments(mappedDocs);
     }).catch(console.error);
-
   }, [user]);
 
   const handleBookAppointment = async () => {
-    if (!bookForm.doctor || !bookForm.date || !bookForm.time) return;
-    
-    const doctorInfo = availableDoctors.find(d => d._id === bookForm.doctor);
-    
+    if (!bookForm.doctor || !bookForm.date || !bookForm.timeSlot) return;
     try {
-      const { data } = await api.post('/appointments', {
-        doctor: bookForm.doctor,
-        date: new Date(bookForm.date),
-        time: bookForm.time,
-        type: bookForm.type,
-        reason: bookForm.reason
-      });
-
-      const newAppt = {
-        id: data._id,
-        doctor: doctorInfo?.name || 'Doctor',
-        specialty: doctorInfo?.specialization || '',
-        date: new Date(data.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-        time: data.time,
-        type: data.type,
-        status: data.status
-      };
-      
-      setBookedAppointments([newAppt, ...bookedAppointments]);
+      const { data } = await api.post('/appointments/book', { doctorId: bookForm.doctor, date: bookForm.date, timeSlot: bookForm.timeSlot, reason: bookForm.reason });
+      setBookedAppointments(prev => [data, ...prev]);
       setBookSuccess(true);
-      setTimeout(() => { setBookSuccess(false); setShowBooking(false); setBookForm({ doctor: '', specialty: '', date: '', time: '', type: 'video', reason: '' }); }, 1800);
-    } catch (error) {
-      console.error('Booking failed', error);
-    }
+      setTimeout(() => { setBookSuccess(false); setShowBooking(false); setBookForm({ doctor: '', date: '', timeSlot: '', reason: '' }); setAvailableSlots([]); }, 1800);
+    } catch (error) { alert(error.response?.data?.message || 'Booking failed'); }
   };
 
   const cancelAppointment = async (id) => {
     try {
-      await api.delete(`/appointments/${id}`);
-      setBookedAppointments(bookedAppointments.filter(a => a.id !== id));
-    } catch (error) {
-      console.error('Cancel failed', error);
-    }
+      const { data } = await api.put(`/appointments/${id}/cancel`);
+      setBookedAppointments(prev => prev.map(a => a._id === id ? data : a));
+    } catch (error) { console.error('Cancel failed', error); }
   };
 
-  // Load access code from localStorage
   useEffect(() => {
     const userId = user?._id || 'demo';
     const code = localStorage.getItem(`cc_code_${userId}`);
@@ -380,638 +259,155 @@ export default function PatientDashboard() {
     else {
       const newCode = genCode();
       localStorage.setItem(`cc_code_${userId}`, newCode);
-      const codemap = JSON.parse(localStorage.getItem('cc_codemap') || '{}');
-      codemap[newCode] = userId;
-      localStorage.setItem('cc_codemap', JSON.stringify(codemap));
       setAccessCode(newCode);
     }
   }, [user]);
 
-  const regenerateCode = () => {
-    const userId = user?._id || 'demo';
-    const oldCode = accessCode;
-    const newCode = genCode();
-    localStorage.setItem(`cc_code_${userId}`, newCode);
-    const codemap = JSON.parse(localStorage.getItem('cc_codemap') || '{}');
-    delete codemap[oldCode];
-    codemap[newCode] = userId;
-    localStorage.setItem('cc_codemap', JSON.stringify(codemap));
-    setAccessCode(newCode);
-    setCodeCopied(false);
-  };
+  const copyCode = () => { navigator.clipboard.writeText(accessCode); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 2000); };
+  const regenerateCode = () => { const newCode = genCode(); localStorage.setItem(`cc_code_${user?._id || 'demo'}`, newCode); setAccessCode(newCode); };
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(accessCode).catch(() => {});
-    setCodeCopied(true);
-    setTimeout(() => setCodeCopied(false), 2000);
-  };
-
-  // Categorize file based on name and type
-  const categorizeFile = (file) => {
-    const name = file.name.toLowerCase();
-    if (name.includes('prescription') || name.includes('rx')) return 'prescription';
-    if (name.includes('report') || name.includes('lab') || name.includes('test') || name.includes('result')) return 'report';
-    if (file.type.includes('image') || name.includes('xray') || name.includes('x-ray') || name.includes('scan') || name.includes('mri')) return 'image';
-    if (file.type.includes('pdf')) return 'report';
-    return 'other';
-  };
-
-  const mapCategoryToBackend = (cat) => {
-    if (cat === 'report') return 'lab_report';
-    if (cat === 'image') return 'imaging';
-    return cat === 'prescription' ? 'prescription' : 'other';
-  };
-
-  // File upload handler
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     setUploading(true);
-    let processed = 0;
-    const newDocs = [];
-
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = async (ev) => {
-        const catFrontend = categorizeFile(file);
         try {
-          const { data } = await api.post('/records', {
-            title: file.name,
-            type: mapCategoryToBackend(catFrontend),
-            fileUrl: ev.target.result,
-            fileName: file.name,
-            fileType: file.type
-          });
-          
-          newDocs.push({
-            id: data._id,
-            name: data.title,
-            type: data.fileType,
-            size: (file.size / 1024).toFixed(1) + ' KB',
-            date: new Date(data.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-            data: data.fileUrl,
-            category: catFrontend
-          });
-        } catch (error) {
-          console.error("Upload failed", error);
-        }
-        
-        processed++;
-        if (processed === files.length) {
-          setDocuments(prev => [...newDocs, ...prev]);
-          setUploading(false);
-        }
+          const { data } = await api.post('/records', { title: file.name, type: 'other', fileUrl: ev.target.result, fileName: file.name, fileType: file.type });
+          setDocuments(prev => [{ id: data._id, name: data.title, type: data.fileType, size: (file.size / 1024).toFixed(1) + ' KB', date: new Date().toLocaleDateString(), data: data.fileUrl, category: 'other' }, ...prev]);
+        } catch (error) { console.error("Upload failed", error); }
+        setUploading(false);
       };
       reader.readAsDataURL(file);
     });
-    e.target.value = '';
-  };
-
-  const deleteDocument = async (id) => {
-    try {
-      await api.delete(`/records/${id}`);
-      setDocuments(docs => docs.filter(d => d.id !== id));
-    } catch (error) {
-      console.error("Delete failed", error);
-    }
-  };
-
-  const openDocument = (doc) => {
-    if (doc.data) {
-      const win = window.open();
-      win.document.write(`<iframe src="${doc.data}" style="width:100%;height:100vh;border:none;"></iframe>`);
-    }
   };
 
   const triggerSOS = () => {
     setSosCountdown(5);
     const iv = setInterval(() => setSosCountdown(c => {
-      if (c <= 1) { clearInterval(iv); setSosCountdown(null); return null; }
+      if (c <= 1) { clearInterval(iv); return null; }
       return c - 1;
     }), 1000);
   };
 
-  // Removed const vitals as it was moved up
-
-  // Specialty suggestions based on stored documents
-  const specialtySuggestions = getSuggestedSpecialties(documents, user?.chronicConditions?.join(' ') || 'diabetes hypertension');
-
-  // ── Filtered & sorted documents ──
-  const filteredDocs = documents
-    .filter(doc => {
-      const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = activeCategory === 'all' || doc.category === activeCategory;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-    });
-
-  // Category icon helper
-  const getCategoryIcon = (cat) => {
-    switch(cat) {
-      case 'prescription': return '💊';
-      case 'report': return '📋';
-      case 'image': return '🖼️';
-      default: return '📄';
-    }
-  };
-
-  const getCategoryLabel = (cat) => {
-    switch(cat) {
-      case 'prescription': return 'Prescription';
-      case 'report': return 'Lab Report';
-      case 'image': return 'Image/Scan';
-      default: return 'Document';
-    }
-  };
+  const specialtySuggestions = getSuggestedSpecialties(documents, user?.chronicConditions?.join(' ') || '');
+  const filteredDocs = documents.filter(d => (activeCategory === 'all' || d.category === activeCategory) && d.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="dashboard-layout">
-      <DailyVitalsModal 
-        isOpen={showVitalsModal} 
-        onClose={() => setShowVitalsModal(false)} 
-        onComplete={handleVitalsComplete} 
-      />
+      <DailyVitalsModal isOpen={showVitalsModal} onClose={() => setShowVitalsModal(false)} onComplete={handleVitalsComplete} />
       <div className="bg-grid" />
       <Sidebar role="patient" mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <Navbar role="patient" onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
       <main className="dashboard-main">
-
-        {/* Welcome row */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px' }}>
-                Good morning, <span style={{ background: 'linear-gradient(135deg,#00d4ff,#00ff88)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  {user?.name?.split(' ')[0] || 'Patient'}
-                </span> 👋
-              </h1>
-              <p style={{ color: 'rgba(240,244,255,0.45)', marginTop: 6, fontSize: 14 }}>
-                Health score: {user?.healthScore || 78}/100 · 1 appointment today
-              </p>
+              <h1 style={{ fontSize: 28, fontWeight: 800 }}>Good morning, <span className="text-gradient">{user?.name?.split(' ')[0] || 'Patient'}</span> 👋</h1>
+              <p style={{ color: 'rgba(240,244,255,0.45)', marginTop: 6 }}>Manage your health journey in one place</p>
             </div>
-            <motion.button
-              onClick={triggerSOS}
-              animate={sosCountdown ? { scale: [1,1.04,1] } : {}}
-              transition={{ duration: 0.8, repeat: Infinity }}
-              style={{ padding: '13px 24px', background: 'linear-gradient(135deg,#ff4444,#ff6b6b)', border: 'none', borderRadius: 50, color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 16px rgba(255,68,68,0.3)', fontFamily: 'Outfit, sans-serif', minHeight: 44 }}
-            >
-              <AlertTriangle size={18} />
-              {sosCountdown ? `SOS in ${sosCountdown}s` : 'EMERGENCY SOS'}
+            <motion.button onClick={triggerSOS} animate={sosCountdown ? { scale: [1, 1.05, 1] } : {}} className="btn-sos">
+              <AlertTriangle size={18} /> {sosCountdown ? `SOS in ${sosCountdown}s` : 'EMERGENCY SOS'}
             </motion.button>
           </div>
           <div style={{ marginTop: 16 }}><ECGLine color="#00d4ff" height={44} /></div>
         </motion.div>
 
-        {/* ── Row 1: Score + Vitals ── */}
-        <div id="health" style={{position:"absolute",marginTop:-80}} />
-        <div className="dashboard-grid-2">
+        <div className="dashboard-grid-3">
           <WidgetCard title="Health Score" icon={Activity} color="#00ff88">
             <HealthMeter score={user?.healthScore || 78} />
-            <div style={{ textAlign: 'center', marginTop: 14 }}>
-              <span className="badge badge-green">Good Condition</span>
-            </div>
           </WidgetCard>
-
           <WidgetCard title="Today's Vitals" icon={Heart} color="#ff4444">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
+            <div className="vitals-grid">
               {vitals.map(v => (
-                <motion.div key={v.label} whileHover={{ scale: 1.02 }} style={{ padding: '12px 14px', background: `${v.color}08`, border: `1px solid ${v.color}20`, borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: `${v.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <v.icon size={16} color={v.color} />
-                  </div>
+                <div key={v.label} className="vital-mini-card" style={{ background: `${v.color}08`, border: `1px solid ${v.color}20` }}>
+                  <v.icon size={16} color={v.color} />
                   <div>
-                    <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)' }}>{v.label}</p>
-                    <p style={{ fontSize: 17, fontWeight: 800, color: v.color }}>{v.value} <span style={{ fontSize: 10, fontWeight: 400, color: 'rgba(240,244,255,0.4)' }}>{v.unit}</span></p>
+                    <p className="vital-label">{v.label}</p>
+                    <p className="vital-value" style={{ color: v.color }}>{v.value} <span>{v.unit}</span></p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </WidgetCard>
-        </div>
-
-        {/* ── Row 2: Documents + Access Code ── */}
-        <div id="locker" style={{position:"absolute",marginTop:-80}} />
-        <div className="dashboard-grid-2-reverse">
-
-          {/* Health Locker — Upload */}
-          <WidgetCard title="Health Locker — My Documents" icon={FileText} color="#00d4ff"
-            action={{ label: 'Upload File', icon: Upload, fn: () => fileInputRef.current?.click() }}>
-            <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
-
-            {uploading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px', background: 'rgba(0,212,255,0.08)', borderRadius: 10, marginBottom: 12 }}>
-                <div style={{ width: 16, height: 16, border: '2px solid rgba(0,212,255,0.3)', borderTop: '2px solid #00d4ff', borderRadius: '50%', animation: 'spin-slow 0.8s linear infinite' }} />
-                <span style={{ fontSize: 13, color: 'rgba(0,212,255,0.8)' }}>Uploading document...</span>
-              </div>
-            )}
-
-            {documents.length === 0 ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="empty-state"
-                style={{ border: '1px dashed rgba(0,212,255,0.2)', borderRadius: 14, cursor: 'pointer', gap: 10 }}
-              >
-                <Upload size={28} className="empty-state-icon" />
-                <p className="empty-state-title">Upload prescriptions, lab reports, X-rays...</p>
-                <p className="empty-state-desc">PDF, JPG, PNG, DOC supported</p>
-              </div>
-            ) : (
-              <>
-                {/* Search + Sort bar */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-                  <div style={{ flex: 1, position: 'relative' }}>
-                    <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(240,244,255,0.35)' }} />
-                    <input
-                      className="input-glass"
-                      placeholder="Search records..."
-                      value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
-                      style={{ paddingLeft: 36, height: 38, fontSize: 13 }}
-                    />
-                  </div>
-                  <select
-                    className="sort-select"
-                    value={sortOrder}
-                    onChange={e => setSortOrder(e.target.value)}
-                    style={{ background: 'var(--select-bg)' }}
-                  >
-                    <option value="newest">Newest first</option>
-                    <option value="oldest">Oldest first</option>
-                  </select>
-                </div>
-
-                {/* Category filter tabs */}
-                <div className="filter-tabs">
-                  {DOC_CATEGORIES.map(cat => (
-                    <button
-                      key={cat.id}
-                      className={`filter-tab ${activeCategory === cat.id ? 'active' : ''}`}
-                      onClick={() => setActiveCategory(cat.id)}
-                    >
-                      {cat.label}
-                      {cat.id !== 'all' && (
-                        <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.6 }}>
-                          ({documents.filter(d => d.category === cat.id).length})
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Filtered document list */}
-                {filteredDocs.length === 0 ? (
-                  <div className="empty-state" style={{ padding: '30px 16px' }}>
-                    <Search size={28} className="empty-state-icon" />
-                    <p className="empty-state-title">No records found</p>
-                    <p className="empty-state-desc">
-                      {searchTerm ? `No results for "${searchTerm}"` : 'No documents in this category'}
-                    </p>
-                    {(searchTerm || activeCategory !== 'all') && (
-                      <button
-                        onClick={() => { setSearchTerm(''); setActiveCategory('all'); }}
-                        style={{ marginTop: 12, padding: '7px 16px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 8, color: '#00d4ff', fontSize: 12, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}
-                      >
-                        Clear filters
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 280, overflowY: 'auto' }}>
-                    {filteredDocs.map(doc => (
-                      <motion.div key={doc.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: 10 }}>
-                        <div style={{ width: 36, height: 36, background: 'rgba(0,212,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>
-                          {getCategoryIcon(doc.category)}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{doc.name}</p>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                            <span style={{ fontSize: 10, padding: '1px 6px', background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.15)', borderRadius: 4, color: 'rgba(0,212,255,0.7)', fontWeight: 600 }}>
-                              {getCategoryLabel(doc.category)}
-                            </span>
-                            <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.35)' }}>{doc.date} · {doc.size}</span>
-                          </div>
-                        </div>
-                        <button onClick={() => openDocument(doc)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(0,212,255,0.6)', padding: 6, minHeight: 32 }} title="View"><Eye size={15} /></button>
-                        <button onClick={() => deleteDocument(doc.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,68,68,0.5)', padding: 6, minHeight: 32 }} title="Delete"><Trash2 size={15} /></button>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-
-            {documents.length > 0 && (
-              <button onClick={() => fileInputRef.current?.click()} style={{ marginTop: 12, width: '100%', padding: '9px', border: '1px dashed rgba(0,212,255,0.2)', background: 'none', borderRadius: 10, color: 'rgba(0,212,255,0.6)', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'Outfit, sans-serif' }}>
-                <Plus size={14} /> Add more documents
-              </button>
-            )}
-          </WidgetCard>
-
-          {/* Doctor Access Code */}
-          <WidgetCard title="Doctor Access Code" icon={Key} color="#8b5cf6">
-            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.5)', lineHeight: 1.6, marginBottom: 20 }}>
-              Share this code with your doctor to grant access to your health documents. They must enter it in their portal.
-            </p>
-
-            {/* Code display */}
-            <div style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 14, padding: '20px', textAlign: 'center', marginBottom: 14 }}>
-              <p style={{ fontSize: 10, color: 'rgba(240,244,255,0.35)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 10, letterSpacing: 2 }}>YOUR PRIVATE ACCESS CODE</p>
-              <p style={{ fontSize: 28, fontWeight: 900, letterSpacing: '6px', color: '#8b5cf6', fontFamily: 'JetBrains Mono, monospace' }}>{accessCode}</p>
-            </div>
-
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={copyCode} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', background: codeCopied ? 'rgba(0,255,136,0.15)' : 'rgba(139,92,246,0.15)', border: `1px solid ${codeCopied ? 'rgba(0,255,136,0.3)' : 'rgba(139,92,246,0.3)'}`, borderRadius: 10, color: codeCopied ? '#00ff88' : '#8b5cf6', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600, transition: 'all 0.2s' }}>
-                {codeCopied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                {codeCopied ? 'Copied!' : 'Copy Code'}
-              </button>
-              <button onClick={regenerateCode} style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'rgba(240,244,255,0.5)', cursor: 'pointer' }} title="Generate new code">
-                <RefreshCw size={15} />
-              </button>
-            </div>
-
-            <div style={{ marginTop: 14, padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 10 }}>
-              <p style={{ fontSize: 12, color: 'rgba(245,158,11,0.8)' }}>⚠️ Only share with your trusted doctor. Regenerate code to revoke access.</p>
-            </div>
+          <WidgetCard title="Smart Triage" icon={Brain} color="#8b5cf6">
+            <SmartTriage />
           </WidgetCard>
         </div>
 
-        {/* ── Row 3: Doctor Specialty Suggestion + Medications ── */}
-        <div id="ai" style={{position:"absolute",marginTop:-80}} />
-        <div id="sos" style={{position:"absolute",marginTop:-80}} />
-        <div id="medications" style={{position:"absolute",marginTop:-80}} />
-        <div className="dashboard-grid-equal">
+        <div style={{ marginTop: 24 }}>
+          <SymptomLogger />
+        </div>
 
-          {/* Doctor Specialty Suggestion */}
-          <WidgetCard title="Recommended Specialists" icon={Stethoscope} color="#00ff88">
-            <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.45)', marginBottom: 16, lineHeight: 1.6 }}>
-              Based on your health records and conditions, we suggest visiting these specialists:
-            </p>
-            {specialtySuggestions.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '30px 20px' }}>
-                <p style={{ fontSize: 14, color: 'rgba(240,244,255,0.35)' }}>Upload health documents to get specialist recommendations</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {specialtySuggestions.map((s, i) => (
-                  <motion.div key={s.spec} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px', background: `${s.color}08`, border: `1px solid ${s.color}20`, borderRadius: 12 }}>
-                    <span style={{ fontSize: 24, flexShrink: 0 }}>{s.emoji}</span>
-                    <div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.spec}</p>
-                      <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginTop: 2 }}>{s.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-            {/* Always show defaults if none detected */}
-            {specialtySuggestions.length === 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {[
-                  { spec: 'General Physician', emoji: '👨‍⚕️', color: '#00d4ff', desc: 'For routine check-ups and initial consultations' },
-                  { spec: 'Cardiologist', emoji: '❤️', color: '#ff4444', desc: 'For heart health based on your BP readings' },
-                ].map((s, i) => (
-                  <div key={s.spec} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px', background: `${s.color}08`, border: `1px solid ${s.color}20`, borderRadius: 12 }}>
-                    <span style={{ fontSize: 24 }}>{s.emoji}</span>
-                    <div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.spec}</p>
-                      <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.45)', marginTop: 2 }}>{s.desc}</p>
-                    </div>
+        <div className="dashboard-grid-2" style={{ marginTop: 24 }}>
+          <WidgetCard title="Health Locker" icon={FileText} color="#00d4ff" action={{ label: 'Upload', icon: Upload, fn: () => fileInputRef.current?.click() }}>
+            <input ref={fileInputRef} type="file" multiple hidden onChange={handleFileUpload} />
+            <div className="doc-list">
+              {filteredDocs.map(doc => (
+                <div key={doc.id} className="doc-item">
+                  <div className="doc-icon">{doc.category === 'prescription' ? '💊' : '📄'}</div>
+                  <div className="doc-info">
+                    <p>{doc.name}</p>
+                    <span>{doc.date}</span>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </WidgetCard>
-
-          {/* Medication Adherence Tracker */}
           <AdherenceTracker />
         </div>
 
-        {/* ── Row 4: Vitals Chart + Appointments ── */}
-        <div id="appointments" style={{position:"absolute",marginTop:-80}} />
-        <div className="dashboard-grid-2-reverse">
-          <WidgetCard title="Weekly Health Trends" icon={TrendingUp} color="#00d4ff">
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={vitalsData}>
-                <defs>
-                  <linearGradient id="bpGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="day" tick={{ fill: 'rgba(240,244,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(240,244,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'var(--bg-dropdown)', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 10, color: 'var(--text-primary)', fontSize: 13 }} />
-                <Area type="monotone" dataKey="bp" name="Systolic BP" stroke="#00d4ff" fill="url(#bpGrad)" strokeWidth={2} dot={false} />
-                <Area type="monotone" dataKey="hr" name="Heart Rate" stroke="#ff4444" fill="none" strokeWidth={2} dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </WidgetCard>
-
+        <div className="dashboard-grid-2" style={{ marginTop: 24 }}>
           <WidgetCard title="Appointments" icon={Calendar} color="#8b5cf6" action={{ label: 'Book New', icon: Plus, fn: () => setShowBooking(true) }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 280, overflowY: 'auto' }}>
-              {bookedAppointments.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '30px 20px' }}>
-                  <Calendar size={28} style={{ color: 'rgba(240,244,255,0.2)', marginBottom: 10 }} />
-                  <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.35)' }}>No appointments booked</p>
-                  <button onClick={() => setShowBooking(true)} style={{ marginTop: 10, padding: '8px 18px', background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, color: '#8b5cf6', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Book your first appointment</button>
-                </div>
-              ) : bookedAppointments.map((appt) => (
-                <motion.div key={appt.id} whileHover={{ x: 3 }} style={{ padding: '12px 14px', background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', borderRadius: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700 }}>{appt.doctor}</p>
-                        <span style={{ fontSize: 11, padding: '1px 7px', background: appt.type === 'video' ? 'rgba(0,212,255,0.15)' : appt.type === 'call' ? 'rgba(0,255,136,0.15)' : 'rgba(139,92,246,0.15)', color: appt.type === 'video' ? '#00d4ff' : appt.type === 'call' ? '#00ff88' : '#8b5cf6', borderRadius: 20, display: 'flex', alignItems: 'center', gap: 3 }}>
-                          {appt.type === 'video' ? <Video size={10} /> : appt.type === 'call' ? <Phone size={10} /> : <MapPin size={10} />}
-                          {appt.type}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: 11, color: 'rgba(240,244,255,0.45)' }}>{appt.specialty}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                        <span style={{ fontSize: 11, color: 'rgba(240,244,255,0.5)', display: 'flex', alignItems: 'center', gap: 3 }}><Clock size={10} />{appt.date}</span>
-                        <span style={{ fontSize: 11, color: '#8b5cf6', fontWeight: 600 }}>{appt.time}</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                      <span className="badge badge-green">confirmed</span>
-                      <button onClick={() => cancelAppointment(appt.id)} style={{ fontSize: 11, color: 'rgba(255,68,68,0.6)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Outfit, sans-serif' }}>Cancel</button>
-                    </div>
+            <div className="appt-list">
+              {bookedAppointments.map(appt => (
+                <div key={appt._id} className="appt-item">
+                  <div>
+                    <p className="appt-doc">{appt.doctorId?.name || 'Doctor'}</p>
+                    <p className="appt-spec">{appt.doctorId?.specialization}</p>
                   </div>
-                </motion.div>
+                  <div className="appt-status">{appt.status}</div>
+                </div>
               ))}
             </div>
           </WidgetCard>
-
-          {/* Booking Modal */}
-          <AnimatePresence>
-            {showBooking && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-overlay)', backdropFilter: 'blur(10px)', zIndex: 500 }}
-                onClick={e => { if (e.target === e.currentTarget) setShowBooking(false); }}>
-                <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-                  className="glass-card" style={{ width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto', padding: 28, border: '1px solid rgba(139,92,246,0.25)', boxShadow: '0 0 80px rgba(139,92,246,0.15)' }}>
-
-                  {bookSuccess ? (
-                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ fontSize: 60 }}>✅</motion.div>
-                      <p style={{ fontSize: 18, fontWeight: 800, color: '#00ff88', marginTop: 16 }}>Appointment Booked!</p>
-                      <p style={{ fontSize: 14, color: 'rgba(240,244,255,0.5)', marginTop: 8 }}>Your appointment has been confirmed.</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <div>
-                          <h3 style={{ fontSize: 20, fontWeight: 800 }}>Book Appointment</h3>
-                          <p style={{ fontSize: 12, color: 'rgba(240,244,255,0.4)', marginTop: 3 }}>Choose a doctor, date and time</p>
-                        </div>
-                        <button onClick={() => setShowBooking(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(240,244,255,0.4)', fontSize: 20 }}>✕</button>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        {/* Doctor select */}
-                        <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DOCTOR</label>
-                          <select className="input-glass" value={bookForm.doctor}
-                            onChange={e => { const doc = availableDoctors.find(d => d._id === e.target.value); setBookForm(f => ({ ...f, doctor: e.target.value, specialty: doc?.specialization || '', time: '' })); }}
-                            style={{ background: 'var(--select-bg)' }}>
-                            <option value="">Choose a doctor...</option>
-                            {availableDoctors.map(d => (
-                              <option key={d._id} value={d._id}>{d.name} — {d.specialization || 'Physician'}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {/* Date */}
-                        <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>SELECT DATE</label>
-                          <input type="date" className="input-glass"
-                            min={new Date().toISOString().split('T')[0]}
-                            value={bookForm.date}
-                            onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))}
-                            style={{ background: 'var(--select-bg)', colorScheme: 'dark' }}
-                          />
-                        </div>
-
-                        {/* Time */}
-                        {bookForm.doctor && (
-                          <div>
-                            <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>AVAILABLE SLOTS</label>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                              {availableDoctors.find(d => d._id === bookForm.doctor)?.available?.map(slot => (
-                                <button key={slot} onClick={() => setBookForm(f => ({ ...f, time: slot }))}
-                                  style={{ padding: '8px 14px', background: bookForm.time === slot ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.04)', border: `1px solid ${bookForm.time === slot ? 'rgba(139,92,246,0.5)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, color: bookForm.time === slot ? '#8b5cf6' : 'rgba(240,244,255,0.6)', fontSize: 13, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: bookForm.time === slot ? 700 : 400, transition: 'all 0.15s' }}>
-                                  {slot}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Type */}
-                        <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>APPOINTMENT TYPE</label>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            {[{ id: 'video', label: '📹 Video Call' }, { id: 'call', label: '📞 Voice Call' }, { id: 'in-person', label: '🏥 In-Person' }].map(t => (
-                              <button key={t.id} onClick={() => setBookForm(f => ({ ...f, type: t.id }))}
-                                style={{ flex: 1, padding: '10px 8px', background: bookForm.type === t.id ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${bookForm.type === t.id ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, color: bookForm.type === t.id ? '#8b5cf6' : 'rgba(240,244,255,0.6)', fontSize: 12.5, cursor: 'pointer', fontFamily: 'Outfit, sans-serif', fontWeight: bookForm.type === t.id ? 700 : 400, transition: 'all 0.15s' }}>
-                                {t.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Reason */}
-                        <div>
-                          <label style={{ fontSize: 12, color: 'rgba(240,244,255,0.5)', fontFamily: 'JetBrains Mono, monospace', display: 'block', marginBottom: 6 }}>REASON (OPTIONAL)</label>
-                          <textarea className="input-glass" placeholder="Describe your symptoms or reason..." value={bookForm.reason}
-                            onChange={e => setBookForm(f => ({ ...f, reason: e.target.value }))}
-                            style={{ minHeight: 70, resize: 'vertical', fontFamily: 'Outfit, sans-serif', fontSize: 13 }}
-                          />
-                        </div>
-
-                        <button
-                          onClick={handleBookAppointment}
-                          disabled={!bookForm.doctor || !bookForm.date || !bookForm.time}
-                          style={{ padding: '14px', background: (!bookForm.doctor || !bookForm.date || !bookForm.time) ? 'rgba(255,255,255,0.08)' : 'linear-gradient(135deg,#8b5cf6,#ec4899)', border: 'none', borderRadius: 12, color: (!bookForm.doctor || !bookForm.date || !bookForm.time) ? 'rgba(240,244,255,0.3)' : '#fff', fontWeight: 800, fontSize: 16, cursor: (!bookForm.doctor || !bookForm.date || !bookForm.time) ? 'not-allowed' : 'pointer', fontFamily: 'Outfit, sans-serif', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                          <Calendar size={17} /> Confirm Booking
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </motion.div>
-              </motion.div>
+          <WidgetCard title="AI Assistant" icon={Brain} color="#8b5cf6">
+            <div className="faq-list">
+              {AI_QA[0].questions.map((qa, i) => (
+                <button key={i} onClick={() => setSelectedQ(qa)} className="faq-btn">{qa.q}</button>
+              ))}
+            </div>
+            {selectedQ && (
+              <div className="faq-answer">
+                <p><strong>Answer:</strong> {selectedQ.a}</p>
+              </div>
             )}
-          </AnimatePresence>
+          </WidgetCard>
         </div>
 
-        {/* ── Row 5: AI Health Q&A ── */}
-        <WidgetCard title="AI Health Assistant — Ask a Question" icon={Brain} color="#8b5cf6">
-          <p style={{ fontSize: 13, color: 'rgba(240,244,255,0.45)', marginBottom: 20 }}>
-            Select a question below to get an instant AI-powered answer tailored to your health profile.
-          </p>
-
-          <div className="dashboard-grid-equal" style={{ gap: 12, marginBottom: 20 }}>
-            {AI_QA.map(cat => (
-              <div key={cat.category}>
-                <button
-                  onClick={() => setOpenCategory(openCategory === cat.category ? null : cat.category)}
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: openCategory === cat.category ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${openCategory === cat.category ? 'rgba(139,92,246,0.35)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 12, cursor: 'pointer', color: openCategory === cat.category ? '#8b5cf6' : 'rgba(240,244,255,0.7)', fontFamily: 'Outfit, sans-serif', fontSize: 14, fontWeight: 600, transition: 'all 0.2s' }}
-                >
-                  {cat.category}
-                  <ChevronDown size={15} style={{ transform: openCategory === cat.category ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
-                </button>
-
-                <AnimatePresence>
-                  {openCategory === cat.category && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
-                        {cat.questions.map((qa, qi) => (
-                          <button
-                            key={qi}
-                            onClick={() => setSelectedQ(selectedQ?.q === qa.q ? null : qa)}
-                            style={{ textAlign: 'left', padding: '10px 14px', background: selectedQ?.q === qa.q ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selectedQ?.q === qa.q ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.06)'}`, borderRadius: 10, cursor: 'pointer', color: 'rgba(240,244,255,0.8)', fontSize: 13, fontFamily: 'Outfit, sans-serif', lineHeight: 1.5, transition: 'all 0.2s' }}
-                          >
-                            {selectedQ?.q === qa.q ? '▼ ' : '▷ '}{qa.q}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-
-          {/* Answer panel */}
-          <AnimatePresence>
-            {selectedQ && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                style={{ padding: '20px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 14, position: 'relative' }}
-              >
-                <button onClick={() => setSelectedQ(null)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(240,244,255,0.4)' }}>
-                  <X size={16} />
-                </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <span style={{ fontSize: 20 }}>🤖</span>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#8b5cf6' }}>{selectedQ.q}</p>
+        <AnimatePresence>
+          {showBooking && (
+            <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="modal-content glass-card">
+                <h3>Book Appointment</h3>
+                <select className="input-glass" value={bookForm.doctor} onChange={e => setBookForm(f => ({ ...f, doctor: e.target.value }))}>
+                  <option value="">Select Doctor</option>
+                  {availableDoctors.map(d => <option key={d._id} value={d._id}>{d.name}</option>)}
+                </select>
+                <input type="date" className="input-glass" value={bookForm.date} onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))} />
+                <div className="slots-grid">
+                  {availableSlots.map(s => (
+                    <button key={s.time} className={`slot-btn ${bookForm.timeSlot === s.time ? 'active' : ''}`} onClick={() => setBookForm(f => ({...f, timeSlot: s.time}))}>{s.time}</button>
+                  ))}
                 </div>
-                <p style={{ fontSize: 14, color: 'rgba(240,244,255,0.75)', lineHeight: 1.75 }}>{selectedQ.a}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </WidgetCard>
-
+                <button className="btn-primary" onClick={handleBookAppointment}>Confirm Booking</button>
+                <button className="btn-ghost" onClick={() => setShowBooking(false)}>Cancel</button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

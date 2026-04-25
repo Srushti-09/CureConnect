@@ -8,7 +8,23 @@ const User = require('./models/User');
 const Appointment = require('./models/Appointment');
 const HealthRecord = require('./models/HealthRecord');
 
+<<<<<<< HEAD
 mongoose.connect(process.env.MONGO_URI)
+=======
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI environment variable is not defined!');
+  console.error('   Please ensure .env file in server/ folder contains: MONGO_URI=<your_mongodb_connection_string>');
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI, {
+  maxPoolSize: 10,
+  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 5000,
+})
+>>>>>>> 129b5ad195a6efa650cbf5a3c53bdd678fbc3181
   .then(async () => {
     console.log('✅ Connected to MongoDB for seeding');
 

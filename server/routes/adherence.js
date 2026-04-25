@@ -12,13 +12,13 @@ const {
 const router = express.Router();
 
 // Patient routes
-router.post('/mark', protect, patientOnly, markAdherence);
-router.get('/logs', protect, patientOnly, getAdherenceLogs);
-router.get('/compliance', protect, patientOnly, getComplianceScore);
+router.post('/mark', protect, markAdherence); // Allow both for backend calls, but usually patient-only
+router.get('/logs', protect, getAdherenceLogs); // Combined logs getter
+router.get('/compliance', protect, getComplianceScore);
 
-// Doctor/Admin routes
-router.get('/:patientId', protect, doctorOnly, getAdherenceByPatient);
-router.get('/compliance/:patientId', protect, doctorOnly, getComplianceByPatient);
+// Specific patient routes (Doctor/Admin)
 router.get('/analytics', protect, doctorOnly, getAdherenceAnalytics);
+router.get('/:patientId', protect, getAdherenceByPatient);
+router.get('/compliance/:patientId', protect, getComplianceByPatient);
 
 module.exports = router;

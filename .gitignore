@@ -69,3 +69,9 @@ server/.env
 .DS_Store
 Thumbs.db
 client/dist
+<<<<<<< HEAD
+=======
+
+# Error logs
+server/err.txt
+>>>>>>> 129b5ad195a6efa650cbf5a3c53bdd678fbc3181

@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+
 import LandingPage from './pages/LandingPage';
 import PersonaSelection from './pages/PersonaSelection';
 import AuthPage from './pages/AuthPage';

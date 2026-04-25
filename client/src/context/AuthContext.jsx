@@ -3,43 +3,28 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-// Axios instance — Vite proxy routes /api → http://localhost:5000
-const api = axios.create({ 
-  baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api`
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL 
+    ? `${import.meta.env.VITE_API_URL}/api` 
+    : '/api'
 });
 
-/**
- * Smart error parser.
- *
- * Priority order:
- *  1. Backend sent a JSON { message: "..." }  → use it exactly
- *  2. It's a 4xx client error but no message   → generic fallback (shouldn't normally happen)
- *  3. EVERYTHING else (5xx, no response, proxy 502, ERR_NETWORK, HTML pages, etc.)
- *     → "Server is offline" message so the user knows to start the backend
- */
 function _parseError(err, fallback) {
-  // 1. Our backend returned a proper JSON message (e.g. "Email already registered")
   const backendMsg = err?.response?.data?.message;
   if (typeof backendMsg === 'string' && backendMsg.length > 0) {
     return backendMsg;
   }
-
-  // 2. Got a 4xx response but no JSON message (edge case)
   const status = err?.response?.status;
   if (status && status >= 400 && status < 500) {
     return fallback;
   }
-
-  // 3. Everything else = server is unreachable / down / proxy failure
-  //    (covers: ERR_NETWORK, ECONNREFUSED, 500, 502, 503, 504, HTML body, undefined response…)
-  return '🔴 Backend server is offline.\nPlease open a NEW terminal and run:\n  cd server\n  node index.js';
+  return '🔴 Backend server is offline.\nPlease ensure your backend is running or check your internet connection.';
 }
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session on page load
   useEffect(() => {
     const token  = localStorage.getItem('cc_token');
     const stored = localStorage.getItem('cc_user');
@@ -48,15 +33,12 @@ export const AuthProvider = ({ children }) => {
       try { setUser(JSON.parse(stored)); } catch { /* ignore bad JSON */ }
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      // Re-validate token with backend silently (background)
       api.get('/auth/me')
         .then(({ data }) => {
           setUser(data);
           localStorage.setItem('cc_user', JSON.stringify({ ...data, token }));
         })
         .catch((err) => {
-          // Only invalidate session on explicit 401 (bad/expired token)
-          // Do NOT clear on network errors — let the cached session stand
           if (err?.response?.status === 401) {
             localStorage.removeItem('cc_token');
             localStorage.removeItem('cc_user');
@@ -69,14 +51,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  /**
-   * POST /api/auth/login
-   * Returns the full user object (flat) including token on success.
-   */
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      // data = { _id, name, email, role, avatar, healthScore, token }
       localStorage.setItem('cc_token', data.token);
       localStorage.setItem('cc_user', JSON.stringify(data));
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
@@ -87,15 +64,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  /**
-   * POST /api/auth/register
-   * Backend validates, hashes password, and saves to MongoDB.
-   * Returns the new user object + JWT on success.
-   */
   const register = async (userData) => {
     try {
       const { data } = await api.post('/auth/register', userData);
-      // data = { _id, name, email, role, avatar, healthScore, token }
       localStorage.setItem('cc_token', data.token);
       localStorage.setItem('cc_user', JSON.stringify(data));
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
