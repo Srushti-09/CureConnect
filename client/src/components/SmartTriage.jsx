@@ -4,7 +4,7 @@ import { api } from '../context/AuthContext';
 import { Activity, Plus, AlertCircle, TrendingUp, Check, Trash2, HeartPulse, Stethoscope, Zap } from 'lucide-react';
 
 const COMMON_SYMPTOMS = [
-  'Chest Pain', 'Breathlessness', 'Numbness', 'Severe Bleeding', 
+  'Chest Pain', 'Breathlessness', 'Numbness',
   'Fever', 'Nausea', 'Dizziness', 'Cough', 'Headache'
 ];
 
