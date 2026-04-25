@@ -36,7 +36,6 @@ const FALLBACK_TRIAGE_RULES = [
   { symptomKeyword: 'chest pain',     priority: 'Red',    score: 10, specialistType: 'Cardiologist',          urgencyEstimate: 'Immediate (ER)' },
   { symptomKeyword: 'breathlessness', priority: 'Red',    score: 9,  specialistType: 'Pulmonologist',         urgencyEstimate: 'Immediate (ER)' },
   { symptomKeyword: 'numbness',       priority: 'Red',    score: 8,  specialistType: 'Neurologist',           urgencyEstimate: 'Within 1 hour' },
-  { symptomKeyword: 'severe bleeding',priority: 'Red',    score: 10, specialistType: 'Emergency Surgeon',     urgencyEstimate: 'Immediate (ER)' },
   { symptomKeyword: 'fever',          priority: 'Yellow', score: 5,  specialistType: 'General Physician',     urgencyEstimate: 'Within 24 hours' },
   { symptomKeyword: 'nausea',         priority: 'Yellow', score: 4,  specialistType: 'Gastroenterologist',    urgencyEstimate: 'Within 24 hours' },
   { symptomKeyword: 'dizziness',      priority: 'Yellow', score: 5,  specialistType: 'Neurologist',           urgencyEstimate: 'Within 12 hours' },
