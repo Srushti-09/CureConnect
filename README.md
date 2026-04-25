@@ -1,4 +1,5 @@
 # CureConnect — Digital Health Platform
+<!-- Deployment Trigger -->
 
 ## 🚀 Setup Instructions
 
